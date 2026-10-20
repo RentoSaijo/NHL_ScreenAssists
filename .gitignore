@@ -1,0 +1,17 @@
+.DS_Store
+.Rhistory
+.RData
+.Rproj.user/
+data/
+reports/.quarto/
+reports/_freeze/
+reports/*.tex
+reports/*.log
+reports/*.aux
+reports/*.out
+reports/*.bbl
+reports/*.blg
+reports/*.fls
+reports/*.fdb_latexmk
+reports/*_files/
+docs/reports/*_files/
