@@ -21,6 +21,17 @@ format:
     lightbox: false
     notebook-links: false
     notebook-view: false
+    include-in-header:
+      text: |
+        <style>
+        mjx-container[display="true"] {
+          max-width: 100%;
+          overflow-x: auto;
+          overflow-y: hidden;
+          padding-block: 0.25rem;
+        }
+        #refs a { overflow-wrap: anywhere; }
+        </style>
     other-links:
       - text: Rankings and replay explorer
         href: https://RentoSaijo.github.io/NHL_ScreenAssists/
