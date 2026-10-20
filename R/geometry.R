@@ -119,9 +119,12 @@ shot_interval <- function(tracking, goal, goalie) {
 sightline_features <- function(puck, goalie, player, time, release, arrival,
                                radius = 1.5, shift = 0) {
   target_time <- time[release] + shift
-  pre  <- time >= target_time - 0.5 & time <= target_time + 0.001
-  near <- time >= target_time - 0.2 & time <= target_time + 0.101
-  flight <- time > target_time & time <= time[arrival] &
+  release <- base::which.min(base::abs(time - target_time))
+  relative <- base::round(time - target_time, 6)
+  pre  <- relative >= -0.5 & relative <= 0
+  near <- relative >= -0.2 & relative <= 0.1 & time <= time[arrival] &
+    (relative <= 0 | puck[, 1] <= goalie[, 1] + 1)
+  flight <- relative > 0 & time <= time[arrival] &
     puck[, 1] <= goalie[, 1] + 1
   window <- pre | near | flight
   valid  <- base::rowSums(base::is.finite(player)) == 2L &
@@ -146,10 +149,9 @@ sightline_features <- function(puck, goalie, player, time, release, arrival,
                                base::pmax(time - sample_dt / 2, target_time))
   strength <- base::exp(-0.5 * (distance / radius)^2) /
     (1 + goalie_distance / 20)
-  strength[!base::is.finite(strength)] <- 0
+  strength[!between | !base::is.finite(strength)] <- 0
   block <- between & distance <= radius
-  preceding <- base::which(block & time <= target_time + 0.001 &
-                             time >= target_time - 1)
+  preceding <- base::which(block & relative <= 0 & relative >= -1)
   gap <- if (base::length(preceding)) {
     base::max(0, target_time - base::max(time[preceding]))
   } else 1
@@ -217,7 +219,7 @@ analyze_goal <- function(replay, goal, goalie_ids) {
   goalie <- goalie * direction
   release <- interval$release
   arrival <- interval$arrival
-  relevant <- base::which(tracking$time >= tracking$time[release] - 0.5 &
+  relevant <- base::which(tracking$time >= tracking$time[release] - 0.500001 &
                            tracking$time <= tracking$time[arrival])
   attack <- tracking$id[relevant, , drop = FALSE]
   attack[tracking$team[relevant, , drop = FALSE] != goal$eventOwnerTeamId] <- NA_real_
@@ -251,8 +253,8 @@ analyze_goal <- function(replay, goal, goalie_ids) {
     features[[base::length(features) + 1L]] <- row
   }
   if (!base::length(features)) return(fail('untracked_teammates'))
-  frames <- base::which(tracking$time >= tracking$time[release] - 1 &
-                         tracking$time <= tracking$time[arrival] + 0.3)
+  frames <- base::which(tracking$time >= tracking$time[release] - 1.000001 &
+                         tracking$time <= tracking$time[arrival] + 0.300001)
   all_ids <- base::unique(base::as.vector(tracking$id[frames, , drop = FALSE]))
   all_ids <- all_ids[base::is.finite(all_ids) & all_ids > 0]
   tracks <- base::lapply(all_ids, function(id) {

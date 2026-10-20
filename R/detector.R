@@ -128,7 +128,8 @@ fit_detector <- function() {
     coefficient <- base::as.matrix(stats::coef(fit$fit, s = penalty))
     coefficient <- coefficient[base::c('(Intercept)', predictors), 1]
     candidates[[base::length(candidates) + 1L]] <- base::list(
-      kind = 'ridge_logistic', predictors = predictors, penalty = penalty,
+      kind = 'ridge_logistic', predictors = predictors, requested_penalty = penalty,
+      penalty = base::max(base::min(fit$fit$lambda), penalty),
       coefficients = base::unname(coefficient)
     )
   }
@@ -204,7 +205,8 @@ fit_detector <- function() {
       'Within participant-bearing screen events, attribution is evaluated against the recorded participant set;',
       'its completeness is a reference-standard assumption.',
       'Screen-on-pass events and screen events without named offensive teammates are excluded.'
-    )
+    ),
+    regularization = 'Requested penalties below the fitted glmnet path minimum use its terminal coefficients.'
   )
   write_json(validation, 'docs/data/validation.json', pretty = TRUE)
   base::message('Selected ', model$kind, '; tuning AP ', base::round(aps[best], 3),
