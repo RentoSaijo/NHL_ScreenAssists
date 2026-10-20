@@ -3,34 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Player rankings · Screen Assist in the NHL</title>
+  <title>Player rankings · Screen Assists in the NHL</title>
   <meta name="description" content="Estimated NHL screen assists with conservative and broader totals, playing-time rates, and animated goal replays.">
   <link rel="stylesheet" href="assets/style.css">
   <script src="assets/app.js" defer></script>
 </head>
 <body data-page="rankings">
   <a href="#main" class="skip">Skip to rankings</a>
-  <header><div class="nav"><a class="brand" href="index.html">Screen Assist in the NHL</a><nav aria-label="Main"><a href="index.html" aria-current="page">Rankings</a><a href="methodology.html">Methodology</a><a href="research.html">Research</a></nav></div></header>
+  <header><div class="nav"><a class="brand" href="index.html">Screen Assists in the NHL</a><nav aria-label="Main"><a href="index.html" aria-current="page">Rankings</a><a href="methodology.html">Methodology</a><a href="research.html">Research</a></nav></div></header>
   <main id="main">
     <h1>Player rankings</h1>
-    <p class="intro">Compare estimated screen-assist totals and rates, and select a player to inspect their credited goals.</p>
+    <p class="intro">Screen assists credit offensive teammates who obstruct the goaltender’s view during a scoring shot, even when they do not receive an official assist. We use public NHL replay tracking to estimate these contributions under conservative and broader definitions, with a replay available for each credited goal.</p>
     <section aria-label="Player rankings">
       <div class="filters">
-        <label>Season<select id="season"><option value="20262027">2026–27</option><option value="20252026">2025–26</option><option value="20242025">2024–25</option><option value="20232024">2023–24</option><option value="all">All seasons</option></select></label>
+        <label>Season<select id="season"><option value="20262027">2026–27</option><option value="20252026" selected>2025–26</option><option value="20242025">2024–25</option><option value="20232024">2023–24</option><option value="all">All seasons</option></select></label>
         <label>Competition<select id="phase"><option value="2">Regular season</option><option value="3">Playoffs</option><option value="all">Both</option></select></label>
         <label>Team<select id="team"><option value="all">All teams</option></select></label>
         <label>Find a player<input id="search" type="search" placeholder="Search by name" autocomplete="off"></label>
       </div>
       <div class="ranking-tools">
         <label>Rate definition<select id="definition"><option value="conservative">Conservative</option><option value="broader">Broader</option></select></label>
-        <label>Rank by<select id="metric"><option value="count">Screen assists</option><option value="per_game">Screen assists per game</option><option value="per60">Screen assists per 60 min</option></select></label>
+        <label class="metric-control">Rank by<select id="metric"><option value="count">Screen assists</option><option value="per_game">Screen assists per game</option><option value="per60">Screen assists per 60 min</option></select></label>
         <label class="exposure-control" id="minimum-control" hidden><span id="minimum-label">Minimum games</span><input id="minimum" type="number" min="0" step="1" value="5"></label>
         <button id="download" class="download" disabled>Download filtered CSV ↓</button>
       </div>
       <div class="table-wrap"><table id="rankings">
         <caption class="skip">Estimated screen-assist rankings. Select a player to explore credited goals.</caption>
         <colgroup><col class="numeric-column"><col class="player-column"><col class="team-column"><col span="6" class="numeric-column"></colgroup>
-        <thead><tr><th scope="col">Rank</th><th scope="col"><button data-sort="name">Player</button></th><th scope="col">Team</th><th scope="col" aria-sort="descending"><button data-sort="conservative">Conservative</button></th><th scope="col"><button data-sort="broader">Broader</button></th><th scope="col"><button data-sort="games" aria-label="Games played">GP</button></th><th scope="col"><button data-sort="seconds">Minutes</button></th><th scope="col"><button data-sort="per_game">Screen assists<br>per game</button></th><th scope="col"><button data-sort="per60">Screen assists<br>per 60 min</button></th></tr></thead>
+        <thead><tr><th scope="col">Rank</th><th scope="col"><button data-sort="name">Player</button></th><th scope="col">Team</th><th scope="col" aria-sort="descending"><button data-sort="conservative">Conservative</button></th><th scope="col"><button data-sort="broader">Broader</button></th><th scope="col"><button data-sort="games">Games played</button></th><th scope="col"><button data-sort="seconds">Minutes</button></th><th scope="col"><button data-sort="per_game">Screen assists<br>per game</button></th><th scope="col"><button data-sort="per60">Screen assists<br>per 60 min</button></th></tr></thead>
         <tbody id="rows"><tr><td colspan="9" class="loading">Loading rankings…</td></tr></tbody>
       </table></div>
       <div class="table-bottom"><div class="pager"><button id="previous" aria-label="Previous page" disabled>←</button><span id="page-number" aria-live="polite"></span><button id="next" aria-label="Next page" disabled>→</button></div></div>

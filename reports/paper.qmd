@@ -263,7 +263,7 @@ knitr::include_graphics('../docs/figures/calibration.png')
 
 ## Player rankings and sensitivity
 
-Across the included seasons and competitions, the detector assigns `r count(base::sum(rankings$rows$conservative))` conservative and `r count(base::sum(rankings$rows$broader))` broader credits. In the 2025--26 regular season, `r leaders$name[1]` leads with `r leaders$conservative[1]` conservative credits; `r leaders$name[2]` and `r leaders$name[3]` each receive `r leaders$conservative[2]`. @tbl-leaders reports both totals and rates for the leading players. The website opens on the ongoing season, where shorter exposure makes ties and large rate changes more common, and connects every credited goal to its replay.
+Across the included seasons and competitions, the detector assigns `r count(base::sum(rankings$rows$conservative))` conservative and `r count(base::sum(rankings$rows$broader))` broader credits. In the 2025--26 regular season, `r leaders$name[1]` leads with `r leaders$conservative[1]` conservative credits; `r leaders$name[2]` and `r leaders$name[3]` each receive `r leaders$conservative[2]`. @tbl-leaders reports both totals and rates for the leading players. The website opens on 2025--26, the most recent completed season, and connects every credited goal to its replay.
 
 ```{r}
 #| label: tbl-leaders
