@@ -60,11 +60,11 @@ function renderRankings() {
   state.filtered = rows;
   state.page = Math.min(state.page, Math.max(0, Math.ceil(rows.length / 50) - 1));
   const visible = rows.slice(state.page * 50, (state.page + 1) * 50);
+  const cell = (key, content, extra = '') => `<td class="${[extra, key === state.sort ? 'sorted' : ''].filter(Boolean).join(' ')}">${content}</td>`;
   $('#rows').innerHTML = visible.length ? visible.map(row => `<tr>
-    <td>${row.rank}</td><td><button class="player-link" data-player="${row.player}">${escapeHTML(row.name)}</button></td>
-    <td class="team">${escapeHTML(row.team)}</td><td class="credit">${row.conservative}</td><td>${row.broader}</td>
-    <td>${row.games}</td><td>${decimal(row.seconds / 60)}</td><td>${decimal(row.per_game)}</td><td>${decimal(row.per60)}</td></tr>`).join('') : '<tr><td colspan="9" class="loading">No players match these filters.</td></tr>';
-  $('#result-count').textContent = `${number.format(rows.length)} players · ${$('#definition').selectedOptions[0].text} rates${$('#metric').value === 'count' ? ' · No exposure minimum' : ''}`;
+    <td>${row.rank}</td>${cell('name', `<button class="player-link" data-player="${row.player}">${escapeHTML(row.name)}</button>`)}
+    ${cell('team', escapeHTML(row.team), 'team')}${cell('conservative', row.conservative)}${cell('broader', row.broader)}
+    ${cell('games', row.games)}${cell('seconds', decimal(row.seconds / 60))}${cell('per_game', decimal(row.per_game))}${cell('per60', decimal(row.per60))}</tr>`).join('') : '<tr><td colspan="9" class="loading">No players match these filters.</td></tr>';
   $('#page-number').textContent = `${rows.length ? state.page + 1 : 0} / ${Math.ceil(rows.length / 50)}`;
   $('#previous').disabled = state.page === 0;
   $('#next').disabled = (state.page + 1) * 50 >= rows.length;
@@ -73,12 +73,23 @@ function renderRankings() {
   $(`[data-sort="${state.sort}"]`)?.closest('th').setAttribute('aria-sort', state.descending ? 'descending' : 'ascending');
 }
 
-// Change rate minimum when selected ranking measure changes.
+// Set exposure defaults from selected competition and snapshot season.
+function setMinimum() {
+  const cutoff = state.data.cutoff;
+  const year = Number(cutoff.slice(0, 4)) - (Number(cutoff.slice(5, 7)) < 7 ? 1 : 0);
+  const currentSeason = String(year * 10000 + year + 1);
+  const ongoing = $('#season').value === currentSeason;
+  const playoffs = $('#phase').value === '3';
+  $('#minimum').value = playoffs ? 0 : $('#metric').value === 'per60' ? (ongoing ? 60 : 250) : (ongoing ? 5 : 25);
+}
+
+// Change ranking measure and initialize its exposure control.
 function setMetric(metric) {
+  const changed = $('#metric').value !== metric;
   $('#metric').value = metric;
   $('#minimum-control').hidden = metric === 'count';
   $('#minimum-label').textContent = metric === 'per60' ? 'Minimum minutes' : 'Minimum games';
-  $('#minimum').value = metric === 'per60' ? 60 : 5;
+  if (changed) setMinimum();
   state.sort = metric === 'count' ? $('#definition').value : metric;
   state.descending = true;
   state.page = 0;
@@ -115,13 +126,16 @@ function populateTeams() {
 // Connect ranking controls.
 function initializeRankings() {
   populateTeams();
-  const m = state.data.test_performance;
-  $('#performance').innerHTML = `<strong>Measured on the reserved 2025–26 reference set:</strong> conservative player attribution has ${percent(m.conservative.player.precision)} precision and ${percent(m.conservative.player.recall)} recall; broader attribution has ${percent(m.broader.player.precision)} precision and ${percent(m.broader.player.recall)} recall. <a href="research.html#validation">See evaluation →</a>`;
-  for (const id of ['season', 'phase', 'team']) $(`#${id}`).addEventListener('change', () => { if (id !== 'team') populateTeams(); state.page = 0; renderRankings(); });
+  setMinimum();
+  for (const id of ['season', 'phase', 'team']) $(`#${id}`).addEventListener('change', () => {
+    if (id !== 'team') { populateTeams(); setMinimum(); }
+    state.page = 0;
+    renderRankings();
+  });
   $('#minimum').addEventListener('input', () => { state.page = 0; renderRankings(); });
   $('#search').addEventListener('input', () => { state.page = 0; renderRankings(); });
   $('#definition').addEventListener('change', () => { if ($('#metric').value === 'count') state.sort = $('#definition').value; state.page = 0; renderRankings(); });
-  $('#metric').addEventListener('change', () => { setMetric($('#metric').value); renderRankings(); });
+  $('#metric').addEventListener('change', () => { setMetric($('#metric').value); setMinimum(); renderRankings(); });
   $$('[data-sort]').forEach(button => button.addEventListener('click', () => {
     const sort = button.dataset.sort;
     const descending = state.sort === sort ? !state.descending : sort !== 'name';
@@ -385,7 +399,7 @@ async function initializeResearch() {
     if (document.body.dataset.page === 'rankings') initializeRankings();
     else await initializeResearch();
   } catch (error) {
-    const target = $('#performance') || $('#load-status');
+    const target = $('#load-status');
     if (target) { target.textContent = `${error.message} Reload to try again.`; target.classList.add('error'); }
     if ($('#rows')) $('#rows').innerHTML = '<tr><td colspan="9" class="error">Rankings could not be loaded.</td></tr>';
   }

@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NHL Screen Assists · Player rankings</title>
-  <meta name="description" content="Estimated NHL screen assists, player rankings, animated goal replays, and independent research using public tracking.">
+  <title>Player rankings · Screen Assist in the NHL</title>
+  <meta name="description" content="Estimated NHL screen assists with conservative and broader totals, playing-time rates, and animated goal replays.">
   <link rel="stylesheet" href="assets/style.css">
   <script src="assets/app.js" defer></script>
 </head>
 <body data-page="rankings">
   <a href="#main" class="skip">Skip to rankings</a>
-  <header><div class="nav"><a class="brand" href="index.html"><span>SA</span>NHL Screen Assists</a><nav aria-label="Main"><a href="index.html" aria-current="page">Rankings</a><a href="methodology.html">Methodology</a><a href="research.html">Research</a></nav></div></header>
+  <header><div class="nav"><a class="brand" href="index.html">Screen Assist in the NHL</a><nav aria-label="Main"><a href="index.html" aria-current="page">Rankings</a><a href="methodology.html">Methodology</a><a href="research.html">Research</a></nav></div></header>
   <main id="main">
-    <div class="hero"><div><p class="eyebrow">Public tracking · Independent research</p><h1>A contribution in plain sight.</h1><p class="intro">A teammate takes away the goalie’s view. Someone else scores. We estimate who creates those screens—and let you inspect the goals behind every credit.</p></div><div class="snapshot">Fixed research snapshot<strong>Through October 19, 2026</strong></div></div>
-    <div class="evidence"><p id="performance">Loading measured attribution performance…</p></div>
+    <h1>Player rankings</h1>
+    <p class="intro">Compare estimated screen-assist totals and rates, and select a player to inspect their credited goals.</p>
     <section aria-label="Player rankings">
       <div class="filters">
         <label>Season<select id="season"><option value="20262027">2026–27</option><option value="20252026">2025–26</option><option value="20242025">2024–25</option><option value="20232024">2023–24</option><option value="all">All seasons</option></select></label>
@@ -23,24 +23,22 @@
       </div>
       <div class="ranking-tools">
         <label>Rate definition<select id="definition"><option value="conservative">Conservative</option><option value="broader">Broader</option></select></label>
-        <label>Rank by<select id="metric"><option value="count">Screen-assist count</option><option value="per_game">Assists per game</option><option value="per60">Assists per 60 min</option></select></label>
+        <label>Rank by<select id="metric"><option value="count">Screen assists</option><option value="per_game">Screen assists per game</option><option value="per60">Screen assists per 60 min</option></select></label>
         <label class="exposure-control" id="minimum-control" hidden><span id="minimum-label">Minimum games</span><input id="minimum" type="number" min="0" step="1" value="5"></label>
         <button id="download" class="download" disabled>Download filtered CSV ↓</button>
       </div>
       <div class="table-wrap"><table id="rankings">
         <caption class="skip">Estimated screen-assist rankings. Select a player to explore credited goals.</caption>
-        <thead><tr><th scope="col">Rank</th><th scope="col"><button data-sort="name">Player</button></th><th scope="col">Team</th><th scope="col" aria-sort="descending"><button data-sort="conservative">Conservative</button></th><th scope="col"><button data-sort="broader">Broader</button></th><th scope="col"><button data-sort="games">GP</button></th><th scope="col"><button data-sort="seconds">Minutes</button></th><th scope="col"><button data-sort="per_game">SA / game</button></th><th scope="col"><button data-sort="per60">SA / 60</button></th></tr></thead>
+        <colgroup><col class="numeric-column"><col class="player-column"><col class="team-column"><col span="6" class="numeric-column"></colgroup>
+        <thead><tr><th scope="col">Rank</th><th scope="col"><button data-sort="name">Player</button></th><th scope="col">Team</th><th scope="col" aria-sort="descending"><button data-sort="conservative">Conservative</button></th><th scope="col"><button data-sort="broader">Broader</button></th><th scope="col"><button data-sort="games" aria-label="Games played">GP</button></th><th scope="col"><button data-sort="seconds">Minutes</button></th><th scope="col"><button data-sort="per_game">Screen assists<br>per game</button></th><th scope="col"><button data-sort="per60">Screen assists<br>per 60 min</button></th></tr></thead>
         <tbody id="rows"><tr><td colspan="9" class="loading">Loading rankings…</td></tr></tbody>
       </table></div>
-      <div class="table-bottom"><span id="result-count" aria-live="polite"></span><div class="pager"><button id="previous" aria-label="Previous page" disabled>←</button><span id="page-number"></span><button id="next" aria-label="Next page" disabled>→</button></div></div>
+      <div class="table-bottom"><div class="pager"><button id="previous" aria-label="Previous page" disabled>←</button><span id="page-number" aria-live="polite"></span><button id="next" aria-label="Next page" disabled>→</button></div></div>
     </section>
     <div class="notes">
-      <p><strong>SA = estimated screen assists.</strong> One credit per qualifying offensive teammate per goal, excluding the scorer. A player can receive both an official assist and a screen assist. Broader totals include every conservative credit; the two columns use different attribution thresholds.</p>
-      <p>Rates use official appearances and ice time under the same filters. Minimums start at five games for per-game rankings and 60 minutes for per-60 rankings. Count rankings have no minimum. Players with zero credits remain eligible.</p>
-      <p>Missing or unresolved replays receive no inferred credits. Counts therefore describe detected contributions in evaluable goal replays, with full official exposure in rate denominators. They do not measure all screens, all shots, or causal goals created. <a href="methodology.html">Read the definition and limitations →</a></p>
+      <p>Each qualifying offensive teammate receives one estimated screen assist per goal, excluding the scorer; official assist recipients can also qualify. Broader totals include every conservative credit. Rates use official appearances and ice time under the selected filters, including exposure from games with missing or unresolved replays. Players with zero credits remain eligible, subject to the selected rate minimum. These estimates describe detected screens on evaluable goals and do not measure all screening activity or goals caused by screening. The <a href="methodology.html">methodology</a> explains the attribution rules and limitations.</p>
     </div>
-    <div class="feature-links"><a href="methodology.html"><strong>From tracking to a credit ↗</strong><span>Follow the shot, inspect the sightline, and see where position and timing uncertainty enter.</span></a><a href="research.html"><strong>What the evidence shows ↗</strong><span>Independent player-level validation, screening’s association with scoring, and the full research paper.</span></a></div>
   </main>
-  <footer><div class="footer-inner"><span>Research by Rento Saijo · Independent of the NHL and its teams</span><span><a href="https://github.com/RentoSaijo/NHL_ScreenAssists">Source &amp; data</a><a href="research.html#paper">Paper</a></span></div></footer>
+  <footer><div class="footer-inner"><span>Rento Saijo</span><a href="https://github.com/RentoSaijo/NHL_ScreenAssists">Source &amp; data</a></div></footer>
 </body>
 </html>
