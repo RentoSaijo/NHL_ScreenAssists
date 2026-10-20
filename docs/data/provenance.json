@@ -1,0 +1,19 @@
+{
+  "cutoff": "2026-10-19",
+  "database_commit": "3106adec4df1933dbef4f8bb6d3675504b7a6fa7",
+  "nhlscraper_commit": "58821f001469d5024766511e511051377c0f859f",
+  "nhlscraper_version": "0.7.0.9000",
+  "acquired_utc": "2026-10-20 05:06:48 UTC",
+  "r_version": "R version 4.6.1 (2026-06-24)",
+  "files": {
+    "data/NHL_PBPS_GC_20232024.parquet": "4baee8ab377a49d1b7d2948926ceb4af",
+    "data/NHL_PBPS_GC_20242025.parquet": "825aa93589c62826dab4b6371a0f9e42",
+    "data/NHL_PBPS_GC_20252026.parquet": "44c707e1b0091049e50e4598dc0a127a",
+    "data/NHL_PBPS_GC_20262027.parquet": "e79b001c9ca1ba5afc62d904553b7349",
+    "data/NHL_REPLAYS_20232024.parquet": "52dd8cee8af56f1fa6e6734082347b7e",
+    "data/NHL_REPLAYS_20242025.parquet": "bf1663900bdef1cc9c8baa7ef3da0b66",
+    "data/NHL_REPLAYS_20252026.parquet": "a92547f1bdb25a36d9db13e8740453fb",
+    "data/NHL_REPLAYS_20262027.parquet": "2bb81d1765b14c2b1cde2b3a1abddc2d"
+  },
+  "seasons": [20232024, 20242025, 20252026, 20262027]
+}
