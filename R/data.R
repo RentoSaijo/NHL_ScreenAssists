@@ -7,7 +7,6 @@ settings <- function() {
     cutoff         = base::as.Date('2026-10-19'),
     database_ref   = '3106adec4df1933dbef4f8bb6d3675504b7a6fa7',
     package_ref    = '58821f001469d5024766511e511051377c0f859f',
-    package_path   = '/Users/rentosaijo/Desktop/Other/Projects/nhlscraper',
     analysis_seed  = 271828L
   )
 }
@@ -72,6 +71,10 @@ fetch_snapshot <- function(season, kind) {
 # Prepare public inputs and official exposure.
 prepare_data <- function() {
   cfg <- settings()
+  revision <- utils::packageDescription('nhlscraper')$RemoteSha
+  if (!base::identical(revision, cfg$package_ref)) {
+    base::stop('Install nhlscraper at the development commit documented in README.md.')
+  }
   base::dir.create('data', showWarnings = FALSE)
   tasks <- base::expand.grid(season = cfg$seasons, kind = base::c('pbp', 'replays'),
                              stringsAsFactors = FALSE)
@@ -137,6 +140,23 @@ prepare_data <- function() {
     r_version = R.version.string,
     files = base::as.list(tools::md5sum(files)),
     seasons = cfg$seasons
+  )
+  packages <- base::c('nhlscraper', 'arrow', 'curl', 'jsonlite', 'dplyr', 'tidyr',
+                      'tidyselect', 'ggplot2', 'scales', 'parsnip', 'glmnet', 'DBI',
+                      'odbc', 'multilevelmod', 'lme4', 'reformulas', 'knitr', 'rmarkdown')
+  provenance$packages <- stats::setNames(base::lapply(packages, function(package) {
+    base::as.character(utils::packageVersion(package))
+  }), packages)
+  provenance$quarto_version <- base::tryCatch(
+    base::system2(quarto_path(), '--version', stdout = TRUE),
+    error = function(e) NA_character_
+  )
+  provenance$exposure_records <- base::nrow(exposure)
+  provenance$completed_games <- base::nrow(games)
+  provenance$public_sources <- base::list(
+    schedule = 'NHL schedule via nhlscraper::games',
+    exposure = 'NHL skater game time-on-ice report',
+    replay = 'NHL replay parquet at pinned NHL_DB commit, supplemented with live completed games through cutoff'
   )
   write_json(provenance, 'docs/data/provenance.json', pretty = TRUE)
   base::message('Prepared ', base::nrow(goals), ' goals and ', base::nrow(exposure),

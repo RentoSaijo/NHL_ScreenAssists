@@ -4,6 +4,7 @@
 .Rproj.user/
 /data/
 reports/.quarto/
+reports/_output/
 reports/_freeze/
 reports/*.tex
 reports/*.log
@@ -14,4 +15,6 @@ reports/*.blg
 reports/*.fls
 reports/*.fdb_latexmk
 reports/*_files/
+reports/site_libs/
+reports/agsm.bst
 docs/reports/*_files/

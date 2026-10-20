@@ -1,0 +1,43 @@
+project:
+  type: manuscript
+  output-dir: _output
+
+manuscript:
+  article: paper.qmd
+  meca-bundle: false
+
+execute:
+  echo: false
+  warning: false
+  message: false
+  freeze: false
+
+format:
+  html:
+    toc: true
+    number-sections: true
+    embed-resources: true
+    code-tools: false
+    lightbox: false
+    notebook-links: false
+    notebook-view: false
+    other-links:
+      - text: Rankings and replay explorer
+        href: https://RentoSaijo.github.io/NHL_ScreenAssists/
+      - text: Source and data
+        href: https://github.com/RentoSaijo/NHL_ScreenAssists
+  jasa-pdf:
+    keep-tex: false
+    shift-heading-level-by: 0
+    fig-pos: H
+    colorlinks: true
+    linkcolor: black
+    citecolor: black
+    urlcolor: blue
+    include-in-header:
+      text: |
+        \usepackage{float}
+        \usepackage{microtype}
+        \usepackage{longtable}
+
+bibliography: references.bib

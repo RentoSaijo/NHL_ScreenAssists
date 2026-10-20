@@ -17,6 +17,9 @@ if (stage %in% base::c('all', 'features')) prepare_features()
 if (stage %in% base::c('all', 'detect')) fit_detector()
 if (stage %in% base::c('all', 'outcome')) fit_outcome()
 if (stage %in% base::c('all', 'publish')) publish_results()
-if (!stage %in% base::c('all', 'prepare', 'features', 'detect', 'outcome', 'publish')) {
-  base::stop('Choose all, prepare, features, detect, outcome, or publish.')
+if (stage %in% base::c('all', 'publish', 'report')) render_report()
+if (stage == 'rebuild') rebuild_public()
+if (!stage %in% base::c('all', 'prepare', 'features', 'detect', 'outcome', 'publish',
+                       'report', 'rebuild')) {
+  base::stop('Choose all, prepare, features, detect, outcome, publish, report, or rebuild.')
 }

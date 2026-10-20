@@ -15,5 +15,33 @@
     "data/NHL_REPLAYS_20252026.parquet": "a92547f1bdb25a36d9db13e8740453fb",
     "data/NHL_REPLAYS_20262027.parquet": "2bb81d1765b14c2b1cde2b3a1abddc2d"
   },
-  "seasons": [20232024, 20242025, 20252026, 20262027]
+  "seasons": [20232024, 20242025, 20252026, 20262027],
+  "packages": {
+    "nhlscraper": "0.7.0.9000",
+    "arrow": "25.0.0",
+    "curl": "7.1.0",
+    "jsonlite": "2.0.0",
+    "dplyr": "1.2.1",
+    "tidyr": "1.3.2",
+    "tidyselect": "1.2.1",
+    "ggplot2": "4.0.3",
+    "scales": "1.4.0",
+    "parsnip": "1.6.0",
+    "glmnet": "5.0",
+    "DBI": "1.3.0",
+    "odbc": "1.7.0",
+    "multilevelmod": "1.0.0",
+    "lme4": "2.0.6",
+    "reformulas": "0.4.4",
+    "knitr": "1.51",
+    "rmarkdown": "2.31"
+  },
+  "quarto_version": "1.10.18",
+  "exposure_records": 155930,
+  "completed_games": 4332,
+  "public_sources": {
+    "schedule": "NHL schedule via nhlscraper::games",
+    "exposure": "NHL skater game time-on-ice report",
+    "replay": "NHL replay parquet at pinned NHL_DB commit, supplemented with live completed games through cutoff"
+  }
 }
