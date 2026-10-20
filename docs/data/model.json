@@ -1,0 +1,19 @@
+{
+  "kind": "ridge_logistic",
+  "predictors": ["near_distance", "release_distance", "pre_duration", "narrow_duration", "wide_duration", "longest_duration", "flight_duration", "near_strength", "pre_strength", "flight_strength", "reacquisition_gap", "goalie_distance", "depth_fraction", "crossing", "shot_distance", "puck_flight_time"],
+  "penalty": 0.0001,
+  "coefficients": [-1.37665819244344, -0.011610025552952329, -0.0078053238090574862, 0.030658011556429519, 0.17975883961231154, 0.70063466876530889, 0.06453764454877256, 5.4003585074919851, 1.6591896958817749, 0.23202519315183617, 3.2661486285562162, -0.60207386687327435, -0.015143131590375497, -0.48461996168841021, 0.72503510488637879, -0.015231823819431407, -0.47205035491879038],
+  "thresholds": {
+    "conservative": 0.57442663590686938,
+    "broader": 0.17989269770678867
+  },
+  "fit_season": 20232024,
+  "tune_season": 20242025,
+  "test_season": 20252026,
+  "effective_radius_ft": 1.5,
+  "feature_window_seconds": {
+    "pre_release": 0.5,
+    "release_band": [-0.20000000000000001, 0.10000000000000001]
+  },
+  "timing_resolution_seconds": 0.10000000000000001
+}

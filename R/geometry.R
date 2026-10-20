@@ -60,6 +60,25 @@ shot_interval <- function(tracking, goal, goalie) {
            dt[start - 1L] <= 0.21 && dx[start - 1L] >= -0.5) {
       start <- start - 1L
     }
+    if (!tip) {
+      possible <- base::which(time >= time[edge + 1L] - 2 &
+                                base::seq_len(n) <= edge & time >= 0.5)
+      location <- base::c(goal$xCoord, goal$yCoord) * direction
+      location_distance <- base::sqrt(base::rowSums(
+        base::sweep(puck, 2, location)^2))
+      scorer_distance <- base::sqrt(base::rowSums((puck - scorer)^2))
+      ahead <- base::pmin(possible + 3L, edge + 1L)
+      separation <- scorer_distance[ahead] - scorer_distance[possible]
+      toward_goal <- (89 - puck[possible, 1]) * dx[possible] -
+        puck[possible, 2] * dy[possible]
+      plausible <- base::is.finite(separation) & separation >= 2 &
+        location_distance[possible] <= 22 & scorer_distance[possible] <= 12 &
+        toward_goal > 0 & speed[possible] >= 12
+      possible <- possible[base::which(plausible)]
+      if (!base::length(possible)) next
+      cost <- location_distance[possible] / 10 + scorer_distance[possible] / 5
+      start <- possible[base::which.min(cost)]
+    }
     if (start < 6L || time[start] < 0.5) next
     location <- base::c(goal$xCoord, goal$yCoord) * direction
     location_error <- base::sqrt(base::sum((puck[start, ] - location)^2))

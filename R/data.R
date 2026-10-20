@@ -15,10 +15,10 @@ settings <- function() {
 # File Helpers -----------------------------------------------------------
 
 # Write compact public JSON.
-write_json <- function(x, path, pretty = FALSE) {
+write_json <- function(x, path, pretty = FALSE, digits = 8) {
   base::dir.create(base::dirname(path), recursive = TRUE, showWarnings = FALSE)
   jsonlite::write_json(x, path, auto_unbox = TRUE, na = 'null', null = 'null',
-                      digits = 8, dataframe = 'rows', pretty = pretty)
+                      digits = digits, dataframe = 'rows', pretty = pretty)
 }
 
 # Cache public API response.
