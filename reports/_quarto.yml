@@ -28,6 +28,7 @@ format:
         href: https://github.com/RentoSaijo/NHL_ScreenAssists
   jasa-pdf:
     keep-tex: false
+    notebook-links: false
     shift-heading-level-by: 0
     fig-pos: H
     colorlinks: true
@@ -39,5 +40,6 @@ format:
         \usepackage{float}
         \usepackage{microtype}
         \usepackage{longtable}
+        \AtBeginDocument{\renewcommand{\harvardurl}[1]{\url{#1}}}
 
 bibliography: references.bib

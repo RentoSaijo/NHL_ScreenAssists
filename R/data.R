@@ -73,7 +73,8 @@ prepare_data <- function() {
   cfg <- settings()
   revision <- utils::packageDescription('nhlscraper')$RemoteSha
   if (!base::identical(revision, cfg$package_ref)) {
-    base::stop('Install nhlscraper at the development commit documented in README.md.')
+    base::stop('Install nhlscraper at commit ', cfg$package_ref,
+                '; package versions are recorded in docs/data/provenance.json.')
   }
   base::dir.create('data', showWarnings = FALSE)
   tasks <- base::expand.grid(season = cfg$seasons, kind = base::c('pbp', 'replays'),

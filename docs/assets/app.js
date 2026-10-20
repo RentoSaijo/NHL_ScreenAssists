@@ -361,7 +361,7 @@ async function initializeResearch() {
     'risk-difference': `${(100 * outcome.adjusted.risk_difference.estimate).toFixed(2)} pp`,
     'odds-ratio': `${outcome.adjusted.odds_ratio.estimate.toFixed(2)} (95% interval ${outcome.adjusted.odds_ratio.lower.toFixed(2)}–${outcome.adjusted.odds_ratio.upper.toFixed(2)})`,
     'shot-count': `${number.format(outcome.screened_shots)} screened and ${number.format(outcome.clear_shots)} clear-sight shots`,
-    'average-precision': final.average_precision.toFixed(2),
+    'average-precision': final.average_precision.toFixed(3),
     'calibration-brier': final.calibration?.brier.toFixed(4) || 'Not a probability model',
     'evaluated-goals': number.format(state.data.evaluated),
     'total-goals': number.format(state.data.goals)
