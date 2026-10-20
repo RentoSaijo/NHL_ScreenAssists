@@ -1,0 +1,85 @@
+{
+  "screened_shots": 3697,
+  "clear_shots": 54690,
+  "screened_retention": 0.96401565,
+  "seasons": [20242025, 20252026],
+  "games": 2792,
+  "shooters": 1013,
+  "goalies": 116,
+  "observed": [
+    {
+      "season_start": "2024",
+      "screen": 0,
+      "shots": 28521,
+      "goals": 884,
+      "rate": 0.03099471
+    },
+    {
+      "season_start": "2024",
+      "screen": 1,
+      "shots": 1929,
+      "goals": 113,
+      "rate": 0.05857957
+    },
+    {
+      "season_start": "2025",
+      "screen": 0,
+      "shots": 26169,
+      "goals": 837,
+      "rate": 0.03198441
+    },
+    {
+      "season_start": "2025",
+      "screen": 1,
+      "shots": 1768,
+      "goals": 114,
+      "rate": 0.06447964
+    }
+  ],
+  "adjusted": {
+    "screened_rate": {
+      "estimate": 0.06152071,
+      "lower": 0.05425014,
+      "upper": 0.06879129
+    },
+    "clear_rate": {
+      "estimate": 0.02065659,
+      "lower": 0.01880713,
+      "upper": 0.02250606
+    },
+    "risk_difference": {
+      "estimate": 0.04086412,
+      "lower": 0.03336854,
+      "upper": 0.0483597
+    },
+    "odds_ratio": {
+      "estimate": 3.47276396,
+      "lower": 2.92312522,
+      "upper": 4.12575194
+    }
+  },
+  "random_effects": [
+    {
+      "grp": "game_id",
+      "vcov": 0.00490442,
+      "sdcor": 0.07003154
+    },
+    {
+      "grp": "shooter_id",
+      "vcov": 0.00515745,
+      "sdcor": 0.07181536
+    },
+    {
+      "grp": "goalie_id",
+      "vcov": 0,
+      "sdcor": 0
+    }
+  ],
+  "singular": true,
+  "optimizer_converged": true,
+  "model": "goal ~ screen + season_start + game_type + strength + zone +      release_type + context + pass_zone + second_pass_zone + shooting_team +      defending_team + (1 | shooter_id) + (1 | goalie_id) + (1 |      game_id)",
+  "estimation": "Binomial mixed model; penalized iteratively reweighted least squares (glmer, nAGQ = 0).",
+  "standardization": "Standardized to screened-shot covariates within common-support strata; integrated over estimated normal shooter, goalie, and game intercept distributions using 41 deterministic normal-quantile nodes.",
+  "interval_method": "Fixed-effect Wald and delta-method 95% intervals. Variance components are held at their fitted estimates.",
+  "population": "Reviewed, QC-complete CSA Offensive Screen and Clear Sight classified shots with a goalie. Screen-on-pass, posts, and deflection releases excluded. Each included season-strength-location-release stratum contains both groups. This is an association within the observed CSA shot population, not all NHL shot attempts."
+}
