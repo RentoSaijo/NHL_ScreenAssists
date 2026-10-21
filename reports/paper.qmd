@@ -10,7 +10,7 @@ keywords:
   - Sports Analytics
   - Screen Assists
   - Tracking Data
-  - Mixed Effects
+  - Mixed-Effects
   - Logistic Regression
 ---
 
