@@ -6,12 +6,12 @@ date: '2026-10-20'
 abstract: |
   We estimate offensive screen assists from public NHL goal-replay tracking and assess player attribution against independent Clear Sight Analytics (CSA) annotations. The snapshot covers 2023--24 through 2025--26 and completed 2026--27 games through October 19, 2026. A geometric baseline and ridge logistic regression are compared using separate seasons for development, model selection, and evaluation. On the reserved 2025--26 reference set, conservative attribution has 92.60% precision and 73.21% recall; a broader definition increases recall to 85.85%, with precision of 84.42%. Player rankings report both definitions, rates based on official appearances and ice time, and a replay for each credited goal. A separate mixed-effects analysis of reviewed CSA shots estimates standardized scoring rates of 6.15% with offensive screens and 2.07% with clear sight. The attribution results support a measure of screening contributions on goals, while the shot analysis places those contributions in the context of an observational association with scoring.
 keywords:
-  - Ice Hockey Analytics
-  - Sports Analytics
-  - Screen Assists
-  - Tracking Data
-  - Mixed-Effects
-  - Logistic Regression
+  - ice hockey analytics
+  - sports analytics
+  - screen assists
+  - tracking data
+  - mixed-effects
+  - logistic regression
 ---
 
 ```{r}
