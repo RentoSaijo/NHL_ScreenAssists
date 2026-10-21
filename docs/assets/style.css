@@ -23,7 +23,6 @@ h2 { font-size: 27px; margin: 44px 0 16px; }
 h3 { font-size: 19px; margin: 28px 0 10px; }
 p { margin: 0 0 18px; }
 .intro { max-width: 740px; font-size: 18px; color: var(--muted); line-height: 1.6; }
-body[data-page='rankings'] h1 { font-size: 30px; margin-bottom: 10px; }
 body[data-page='rankings'] .intro { font-size: 16px; max-width: none; margin-bottom: 24px; }
 .filters { display: grid; grid-template-columns: 1.05fr 1fr 1fr 1.6fr; gap: 16px; padding: 24px; background: white; border: 1px solid var(--line); border-radius: 8px 8px 0 0; }
 label { display: block; color: var(--muted); font-size: 12px; font-weight: 650; }
@@ -90,7 +89,7 @@ details > p, details > div { margin-top: 14px; }
 .error { color: #9d3d32; }
 [hidden] { display: none !important; }
 .ranking-tools .exposure-control[hidden] { display: block !important; visibility: hidden; }
-dialog { width: min(1180px, calc(100% - 36px)); max-height: calc(100dvh - 40px); border: 0; padding: 0; border-radius: 10px; color: var(--ink); box-shadow: 0 20px 80px #142c3f55; }
+dialog { width: min(1180px, calc(100% - 36px)); max-width: none; max-height: calc(100dvh - 40px); border: 0; padding: 0; border-radius: 10px; color: var(--ink); box-shadow: 0 20px 80px #142c3f55; }
 dialog::backdrop { background: #0a1b29b8; }
 .dialog-head { display: flex; justify-content: space-between; align-items: start; gap: 18px; padding: 22px 26px 16px; border-bottom: 1px solid var(--line); }
 .dialog-head h2 { margin: 0 0 5px; font-size: 26px; }
@@ -113,16 +112,16 @@ canvas { display: block; width: 100%; aspect-ratio: 1.55; }
 .controls button { min-width: 64px; padding: 5px 8px; font-size: 13px; }
 .controls input[type='range'] { flex: 1; min-width: 40px; accent-color: var(--teal); }
 .controls select { width: 72px; min-height: 32px; margin: 0; padding: 4px; font-size: 12px; }
-.replay-options { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 12px; }
-.replay-options label { font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
-.replay-time { font-size: 12px; font-variant-numeric: tabular-nums; }
+.replay-options { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; margin-top: 12px; }
+.replay-options label { font-size: 12px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.replay-time { font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 11px; color: var(--muted); margin: 12px 0 9px; }
 .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; background: var(--teal); }
 .legend .selected { background: var(--orange); }
 .legend .defender { background: #85959f; }
 .legend .puck { background: #101b23; }
 .replay-caption { font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
-.replay-links { display: flex; gap: 18px; font-size: 12px; }
+.replay-links { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 12px; }
 .example-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0; }
 .example-buttons button { text-align: left; font-size: 14px; }
 .skip { position: absolute; left: 15px; top: -100px; background: white; padding: 8px; z-index: 20; }
@@ -162,5 +161,4 @@ canvas { display: block; width: 100%; aspect-ratio: 1.55; }
   .reading figure { padding: 8px; }
   canvas { aspect-ratio: 1.12; }
   .controls { gap: 6px; }
-  .replay-options { flex-wrap: wrap; gap: 6px; }
 }

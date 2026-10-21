@@ -165,7 +165,7 @@ function createExplorer() {
       <h3 id="replay-title">Select a goal</h3><p class="replay-subtitle" id="replay-subtitle"></p>
       <div class="canvas-frame"><canvas id="rink" width="1000" height="650" aria-label="Animated rink replay with player identities, puck, and estimated sightline">Animated hockey tracking replay. Use the original NHL replay link for an alternative view.</canvas></div>
       <div class="controls"><button id="play" disabled>Play</button><input id="seek" type="range" min="0" max="1" step="1" value="0" aria-label="Replay frame" disabled><select id="speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></div>
-      <div class="replay-options"><span class="replay-time" id="replay-time"></span><label><input id="names" type="checkbox" checked> Player names</label><label><input id="uncertainty" type="checkbox" checked> Sightline band</label></div>
+      <div class="replay-options"><span class="replay-time" id="replay-time"></span><label><input id="names" type="checkbox" checked> Player names</label></div>
       <div class="legend"><span><i class="selected"></i>Selected player</span><span><i></i>Attacker</span><span><i class="defender"></i>Defender</span><span><i class="puck"></i>Puck</span></div>
       <p class="replay-caption" id="replay-credits"></p>
       <p class="replay-caption">0.00 s marks estimated release. Tracking is sampled at 0.10 s. Dots show shoulder sensors; the shaded band illustrates a 1.50 ft effective tolerance around the goalie-to-puck segment. It does not reveal body pose or the goalie’s actual field of view.</p>
@@ -184,7 +184,7 @@ function createExplorer() {
     if (state.playing) requestAnimationFrame(animate);
   });
   $('#seek').addEventListener('input', () => { state.playing = false; $('#play').textContent = 'Play'; state.frame = Number($('#seek').value); drawRink(); });
-  for (const id of ['names', 'uncertainty']) $(`#${id}`).addEventListener('change', drawRink);
+  $('#names').addEventListener('change', drawRink);
   window.addEventListener('resize', () => { if (state.clip) drawRink(); });
 }
 
@@ -302,7 +302,7 @@ function drawRink() {
   const frame = Math.round(state.frame), puck = clip.puck[frame], goalie = clip.players.find(p => p.id === clip.goalie)?.xy[frame];
   if (valid(puck) && valid(goalie)) {
     const active = clip.time[frame] <= clip.arrival && (clip.time[frame] <= 0 || puck[0] <= goalie[0] + 1);
-    if ($('#uncertainty').checked && active) line(goalie, puck, '#00796c24', 3 * scale);
+    if (active) line(goalie, puck, '#00796c24', 3 * scale);
     line(goalie, puck, active ? '#00796c' : '#a7b5bc', 1.1);
     for (let i = Math.max(1, frame - 5); i <= frame; i++) if (valid(clip.puck[i - 1]) && valid(clip.puck[i])) line(clip.puck[i - 1], clip.puck[i], '#142c3f35', 1.5);
   }
