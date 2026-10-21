@@ -4,7 +4,7 @@ author:
   - name: Rento Saijo
 date: '2026-10-20'
 abstract: |
-  We estimate offensive screen assists from public NHL goal-replay tracking and evaluate player attribution against independent Clear Sight Analytics (CSA) annotations. The study covers 2023--24 through 2025--26 and completed 2026--27 games through October 19, 2026. We compare a geometric baseline with ridge logistic regression, separating development, model selection, and evaluation by season. On the reserved 2025--26 reference set, conservative attribution achieves 92.60% precision and 73.21% recall, while a broader definition achieves 84.42% precision and 85.85% recall. The resulting player rankings include counts, rates based on official appearances and ice time, and a replay for each credited goal. In a separate mixed-effects analysis of reviewed CSA shots, standardized scoring rates are 6.15% with offensive screens and 2.07% with clear sight. Together, these analyses provide an evaluated method for describing screening contributions on goals and evidence of screening's association with scoring. Interpretation remains limited by planar tracking, uncertain shot timing, selected reference labels, and sensitivity to positional assumptions; the estimates do not identify causal goals added by individual players.
+  We estimate offensive screen assists from public NHL goal-replay tracking and assess player attribution against independent Clear Sight Analytics (CSA) annotations. The snapshot covers 2023--24 through 2025--26 and completed 2026--27 games through October 19, 2026. A geometric baseline and ridge logistic regression are compared using separate seasons for development, model selection, and evaluation. On the reserved 2025--26 reference set, conservative attribution has 92.60% precision and 73.21% recall; a broader definition increases recall to 85.85%, with precision of 84.42%. Player rankings report both definitions, rates based on official appearances and ice time, and a replay for each credited goal. A separate mixed-effects analysis of reviewed CSA shots estimates standardized scoring rates of 6.15% with offensive screens and 2.07% with clear sight. The attribution results support a measure of screening contributions on goals, while the shot analysis places those contributions in the context of an observational association with scoring. Planar tracking, uncertain shot timing, selected reference labels, and sensitivity to positional assumptions limit interpretation. Neither analysis identifies causal goals added by individual players.
 keywords:
   - ice hockey
   - player attribution
@@ -49,25 +49,26 @@ leaders <- rankings$rows |>
 
 # Introduction
 
-An offensive teammate who obstructs the goaltender's view can contribute to a goal without receiving an official assist. A screen-assist statistic can record that contribution, provided its definition accounts for the timing and location of the obstruction. A player near the crease may leave the puck visible, while a player crossing the sightline briefly may interfere with the goalie's view around release. We therefore examine the scoring shot and the movement of potential screeners over a short interval, then evaluate whether the resulting credits identify independently annotated participants.
+A teammate who screens the goaltender can contribute to a goal without receiving an official assist. The location and timing of that screen matter: a player near the crease may leave the puck visible, while a brief crossing of the sightline around release may interfere with the goalie's view. Recording this contribution therefore requires a definition tied to the scoring shot. We examine the movement of potential screeners over a short interval and evaluate whether the resulting credits identify independently annotated participants.
 
-Earlier work provides several approaches to measuring screening and traffic. @cait2019 manually identifies screen assists on goals, including stationary and moving screens. Using tracking data, @pitassi2025 examines traffic in the area between the puck and goalposts and its relationship with shot outcomes, accounting for differences in shot location. Their analysis includes whether attempts reach the net. In related work, @iaboni2025 combines tracking with video-derived player poses to estimate the visibility and reachability of the net from the puck's perspective. These studies address related but distinct quantities: players in a shooting lane, the area of net available to a shot, and obstruction of the goalie's view need not coincide.
+Screening and traffic have been measured from several perspectives. @cait2019 identifies screen assists manually on goals, covering both stationary and moving screens. Using tracking data, @pitassi2025 examine traffic between the puck and goalposts and its relationship with shot outcomes, accounting for shot location; the outcomes considered include whether attempts reach the net. @iaboni2025 combine tracking with video-derived player poses to estimate how much of the net is visible and reachable from the puck's perspective. These approaches address quantities that can differ on the same play: occupancy of a shooting lane, the area of net available to a shot, and obstruction of the goaltender's view.
 
-We use public NHL goal replays to identify offensive teammates whose tracked positions resemble independently annotated screens. Clear Sight Analytics (CSA) provides the private reference for development and evaluation, while official appearances and ice time supply the exposure denominators for player rankings. Readers can inspect each credited goal through an accompanying replay explorer. To examine the relevance of screening beyond goals alone, we also analyze its association with scoring in a separate CSA shot population. This distinction between attribution on goals and scoring outcomes is central to interpreting the rankings.
+Our player estimates use public NHL goal replays to identify offensive teammates whose tracked positions resemble independently annotated screens. Clear Sight Analytics (CSA) supplies the private reference for development and evaluation, and official appearances and ice time provide exposure denominators for the rankings. An accompanying replay explorer connects every credited goal to the underlying play. Because these data condition on a goal being scored, we examine screening's association with scoring in a separate CSA shot population. The two analyses address complementary parts of the problem: attributing screens on goals and comparing scoring outcomes across observed shot contexts.
 
 # Data and study populations
 
 ## Public goals and player exposure
 
-The snapshot includes completed regular-season and playoff games in 2023--24, 2024--25, and 2025--26, plus 2026--27 games dated through October 19, 2026. We exclude shootout events and acquire public data with `nhlscraper` version 0.7.0.9000 [@nhlscraper], recording the package revision and public database snapshot in the repository. Official skater appearances and time on ice provide the exposure denominators, with team membership assigned separately for each game.
+The study uses a fixed snapshot of completed regular-season and playoff games in 2023--24, 2024--25, and 2025--26, together with 2026--27 games dated through October 19, 2026. Shootout events are excluded. Public data are acquired with `nhlscraper` version 0.7.0.9000 [@nhlscraper], with the package revision and public database snapshot recorded in the repository. To relate player credits to exposure, we use official skater appearances and time on ice, assigning team membership separately for each game.
 
-Public replays contain planar puck and player coordinates, identities, and timestamps at an observed sampling interval of 0.10 s. Sequences generally span about 12--14 s, although their endpoints do not define shot release or goal time. We sort the timestamps, retain the first observation at duplicated timestamps, and follow player identifiers across tracking slots. Coordinates are expressed in feet on a rink centered at the origin.
+Each public replay provides planar puck and player coordinates, identities, and timestamps at an observed interval of 0.10 s. The sequences usually span about 12--14 s, but their endpoints do not identify shot release or goal time. We order observations by timestamp, keep the first observation when timestamps are duplicated, and follow player identifiers as they move between tracking slots. All coordinates are in feet on a rink centered at the origin.
 
-The public population contains `r count(rankings$goals)` non-shootout goals. Stored replay availability in 2023--24 is 99.22% before tracking-quality exclusions; across all included seasons, `r count(rankings$evaluated)` goals have a usable shot interval and candidate teammates. @tbl-population distinguishes these evaluated goals from empty-net goals and other unevaluable sequences. We retain an unevaluable status when the tracking cannot support attribution.
+The public population comprises `r count(rankings$goals)` non-shootout goals. Stored replays cover 99.22% of the 2023--24 goals before tracking-quality exclusions; over all included seasons, `r count(rankings$evaluated)` goals have both a usable shot interval and candidate teammates. @tbl-population separates these evaluated goals from empty-net goals and other unevaluable sequences. Goals whose tracking cannot support attribution retain an unevaluable status.
 
 ```{r}
 #| label: tbl-population
-#| tbl-cap: 'Public goal population after shootout exclusion. The 2026--27 sample includes completed games through October 19, 2026.'
+#| tbl-cap: 'Public goals after shootout exclusion, separated by replay eligibility. The 2026--27 sample covers completed games through October 19, 2026.'
+#| tbl-pos: H
 
 # Summarize public replay eligibility.
 population <- rankings$quality |>
@@ -89,15 +90,16 @@ knitr::kable(population, booktabs = TRUE, longtable = FALSE,
 
 ## Independent reference annotations
 
-We query CSA's historical reporting database read-only and retain private records in memory. Reference events must be game-reviewed, quality-control complete, classified as shots, and associated with an identifiable goalie. Matches require agreement on game identity, scorer, shooting team, home and away teams, goalie, and period. An imported event-identifier match allows a clock difference of at most one second. When no valid identifier match is available, we require a unique exact clock-and-scorer match with the same contextual checks. Participants are mapped through NHL identifiers, and duplicate event--player--side memberships are removed.
+The reference comes from a read-only query of CSA's historical reporting database, with private records retained in memory. Eligible events are game-reviewed, quality-control complete, classified as shots, and linked to an identifiable goalie. A public goal matches a CSA event only when game identity, scorer, shooting team, home and away teams, goalie, and period agree. An imported event-identifier match permits a clock difference of at most one second. If that match is unavailable or invalid, the fallback requires a unique exact clock-and-scorer match and the same contextual agreement. We map participants through NHL identifiers and remove duplicate event--player--side memberships.
 
-Positive events require an explicit offensive-screen, mixed-screen, one-timer/screen, or screen/deflection classification and at least one named offensive teammate other than the scorer. Negative events require an explicit clear-sight or defensive-only classification with no offensive teammate recorded. We exclude screen-on-pass cases and screen-classified events lacking a named offensive teammate, so absence of a participant row alone never establishes a negative event.
+Event labels require explicit evidence in the CSA classifications. A positive event has an offensive-screen, mixed-screen, one-timer/screen, or screen/deflection classification and names at least one offensive teammate other than the scorer. A negative event has a clear-sight or defensive-only classification and records no offensive teammate. Screen-on-pass cases and screen-classified events without a named offensive teammate are excluded. Consequently, a missing participant row by itself cannot establish a negative event.
 
-Within an event with recorded participants, their list supplies the player-attribution reference. We treat other candidate teammates as negatives and count named participants missing from usable tracking as unrecovered positives. This assumes the participant list is complete. Because the available documentation also lacks an explicit operational threshold for brief screens or frame-level screen timing, disagreement may reflect differences in coding scope as well as detector error. @tbl-reference describes the matched and evaluable populations; their screening prevalence follows the eligibility rules and need not match the prevalence among all NHL goals.
+For events with recorded participants, the participant list defines the player-attribution reference. Other candidate teammates are treated as negatives, and named participants absent from usable tracking count as unrecovered positives. This construction assumes a complete participant list. The available documentation also leaves the operational threshold for brief screens and frame-level screen timing unspecified, so disagreements can reflect coding scope as well as detector error. The matched and evaluable populations in @tbl-reference reflect these eligibility rules; their screening prevalence can differ from prevalence across all NHL goals.
 
 ```{r}
 #| label: tbl-reference
-#| tbl-cap: 'CSA reference populations. Matched goals precede label and replay-quality restrictions.'
+#| tbl-cap: 'CSA reference populations by season. Matched goals are counted before label and replay-quality restrictions.'
+#| tbl-pos: H
 
 # Display aggregate reference counts without event labels.
 reference <- validation$reference
@@ -114,15 +116,15 @@ knitr::kable(reference, col.names = base::c('Season', 'Matched goals', 'Benchmar
 
 ## Release and arrival
 
-We rotate each sequence so the defending goal is at $x=89$ ft and identify goal-plane crossings toward the net. A crossing qualifies when its interpolated lateral coordinate lies within 4.50 ft of the goal center, allowing some tracking displacement around the 6 ft goalmouth. Arrival is assigned to the first sample at or beyond the plane. We then search backward up to 2.00 s for a release, using puck speed and agreement with the official shot location to assess candidate intervals.
+Shot timing is reconstructed from the puck trajectory after rotating each sequence to place the defending goal at $x=89$ ft. We identify crossings toward the goal plane and retain those whose interpolated lateral coordinate is within 4.50 ft of goal center, accommodating tracking displacement around the 6 ft goalmouth. Arrival is the first sample at or beyond the plane. It anchors a backward search of up to 2.00 s for release, with candidate intervals assessed using puck speed and agreement with the official shot location.
 
-For ordinary shots, a release candidate moves toward goal at at least 12 ft/s, lies within 22 ft of the recorded shot location and 12 ft of the scorer's sensor, and is followed by at least 2 ft of additional puck--scorer separation over the next three samples, or fewer if arrival occurs first. Three samples normally span 0.30 s. We choose the candidate minimizing location error divided by 10 ft plus scorer separation divided by 5 ft. These tolerances accommodate a stick release displaced from the shoulder and coarse official shot locations, without directly observing contact with the stick.
+For an ordinary shot, a release candidate must move toward goal at at least 12 ft/s and lie within both 22 ft of the recorded shot location and 12 ft of the scorer's sensor. Puck--scorer separation must then increase by at least 2 ft over the next three samples, or over the remaining samples if arrival occurs sooner. Three samples ordinarily span 0.30 s. Among eligible candidates, we minimize location error divided by 10 ft plus scorer separation divided by 5 ft. The spatial tolerances allow for displacement between a stick release and a shoulder sensor, as well as imprecision in official shot locations; stick contact itself is unobserved.
 
-For tips and deflections, we trace the incoming flight backward through consecutive fast-moving samples and check the credited scorer near the terminal deflection to approximate the original release. Rebound goals use the scoring attempt and its recorded location; earlier traffic contributes only if it also falls within that attempt's analysis window. We require at least 0.50 s of preceding tracking and reject critical intervals containing gaps longer than 0.21 s or missing puck or goalie positions. Two candidate arrivals more than 0.50 s apart with matching costs differing by less than 0.25 make the sequence ambiguous. These rules reconstruct shot timing from the available trajectories, with accuracy limited by 10 Hz sampling, planar coordinates, and the absence of puck-touch annotations.
+Tips and deflections require a different reconstruction. We follow the incoming flight backward through consecutive fast-moving samples and check the credited scorer's position near the terminal deflection to approximate the original release. For a rebound goal, the scoring attempt and its recorded location define the sequence, so preceding traffic contributes only when it falls within that attempt's analysis window. Every sequence requires at least 0.50 s of preceding tracking. Critical intervals are rejected if they contain gaps longer than 0.21 s or lack puck or goalie positions; two candidate arrivals more than 0.50 s apart with matching costs differing by less than 0.25 leave the sequence ambiguous. Timing accuracy remains constrained by the 10 Hz sampling rate, planar coordinates, and absence of puck-touch annotations.
 
 ## Finite sightline features
 
-At time $t$, let $g_t$, $p_t$, and $s_{it}$ be the tracked goalie, puck, and candidate player's positions. With $v_t=p_t-g_t$, define
+The geometry is defined by the tracked positions of the goalie, puck, and candidate player at time $t$, denoted $g_t$, $p_t$, and $s_{it}$, respectively. With $v_t=p_t-g_t$, we calculate
 
 $$
 u_{it}=\frac{(s_{it}-g_t)^\mathsf{T}v_t}{v_t^\mathsf{T}v_t},
@@ -130,33 +132,33 @@ u_{it}=\frac{(s_{it}-g_t)^\mathsf{T}v_t}{v_t^\mathsf{T}v_t},
 d_{it}=\left\|(s_{it}-g_t)-u_{it}v_t\right\|.
 $$
 
-We evaluate obstruction when $0<u_{it}<1$ and the segment exceeds 2 ft, restricting attention to players between the goalie and puck. The feature windows cover the 0.50 s before release, a band from $-0.20$ to $+0.10$ s around release, and flight toward the goalie. Post-release windows stop at arrival and exclude puck positions more than 1 ft beyond the goalie's longitudinal position. Duration calculations weight intervals centered on observed samples by their overlap with the relevant window. Reacquisition time is the interval since the most recent obstruction in the preceding 1.00 s, capped at 1.00 s when none is observed. Candidate players require at least three valid samples and 80% observed positions in the feature window.
+The projection condition $0<u_{it}<1$ places the candidate between the goalie and puck; we evaluate obstruction only when the segment also exceeds 2 ft. Features summarize the 0.50 s before release, the band from $-0.20$ to $+0.10$ s around release, and flight toward the goalie. Post-release windows end at arrival and exclude puck positions more than 1 ft beyond the goalie's longitudinal position. To calculate duration, we weight intervals centered on observed samples by their overlap with each window. Reacquisition time measures the interval since the most recent obstruction in the preceding 1.00 s, taking a capped value of 1.00 s if no obstruction is observed. Candidate players require at least three valid samples and 80% observed positions in the feature window.
 
-The 16 predictors describe minimum and release-time separation, obstruction duration under primary and narrower/wider tolerances, longest continuous duration, flight obstruction, alignment strength before/near/after release, reacquisition time, goalie proximity, relative depth, crossing, shot distance, and flight time. For an effective radius $r$, alignment strength is
+The resulting 16 predictors capture minimum and release-time separation; obstruction duration under primary, narrower, and wider tolerances; longest continuous duration; and flight obstruction. They also describe alignment strength before, near, and after release, reacquisition time, goalie proximity, relative depth, crossing, shot distance, and flight time. Alignment strength for an effective radius $r$ is
 
 $$
 A_{it}(r)=
 \frac{\exp\{-d_{it}^2/(2r^2)\}}{1+\|s_{it}-g_t\|/20},
 $$
 
-with zero strength outside the finite segment. The geometric baseline combines peak near-release or flight alignment, pre-release obstruction duration $D_i$, and reacquisition time $R_i$, both measured in seconds:
+and is zero outside the finite segment. The geometric baseline combines the peak alignment near release or during flight with pre-release obstruction duration $D_i$ and reacquisition time $R_i$, both in seconds:
 
 $$
 B_i=\max(A_{i,\mathrm{near}},A_{i,\mathrm{flight}})
 \{0.25+\min(1,D_i/0.30)\}\exp(-R_i/0.40).
 $$
 
-This score gives greater weight to close alignment, sustained obstruction, and a shorter interval for reacquisition before release.
+Close alignment and sustained obstruction increase this score, as does a shorter interval for reacquisition before release.
 
 ## Position and timing uncertainty
 
-The right-shoulder sensor placement described by @radke2021 displaces tracked positions from the player's body center and, for a goalie, from the eyes. Movement direction does not resolve orientation because players can skate backward, move sideways, or remain stationary. Public replays also lack puck height, gaze, stance, and the extent to which limbs or equipment obscure vision. The finite segment consequently serves as a planar proxy for a three-dimensional visual process.
+Interpreting this geometry requires accounting for what the sensors measure. The right-shoulder placement described by @radke2021 separates a tracked position from the player's body center and, for a goalie, from the eyes. Skating direction cannot recover orientation: players can move backward or sideways and can remain stationary. The replays also omit puck height, gaze, stance, and the visual obstruction caused by limbs or equipment. The finite sightline thus approximates a three-dimensional visual process with planar positions.
 
-We use an effective tolerance of 1.50 ft and examine alternatives of 1.00 and 2.00 ft to assess sensitivity to body extent and sensor displacement. We separately shift estimated release by $-0.10$ and $+0.10$ s while retaining the selected model and thresholds. If a shifted feature window lacks sufficient tracking, its primary feature values are retained. These bounded scenarios describe dependence on positional and timing assumptions; they are not calibrated distributions of anatomical error and do not cover every possible posture.
+The primary effective tolerance is 1.50 ft. Alternatives of 1.00 and 2.00 ft assess how body extent and sensor displacement affect the estimates, and separate shifts of $-0.10$ and $+0.10$ s in estimated release examine timing sensitivity. These scenarios retain the selected model and thresholds. When a shifted feature window has insufficient tracking, the primary feature values are retained. The scenarios assess sensitivity to these changes without defining a calibrated distribution of anatomical error or covering every possible posture.
 
 ```{r}
 #| label: fig-geometry
-#| fig-cap: 'An actual replay at estimated release. Tracked sensor positions define the finite goalie-to-puck segment; the band illustrates effective geometric tolerance.'
+#| fig-cap: 'Estimated release in an actual replay. Sensor positions define the finite goalie-to-puck segment, and the band represents its effective geometric tolerance.'
 #| fig-width: 4.8
 #| out-width: '65%'
 
@@ -166,17 +168,17 @@ knitr::include_graphics('../docs/figures/geometry.png')
 
 ## Model selection and attribution
 
-We develop on 2023--24, select the model and thresholds on 2024--25, and reserve 2025--26 for final evaluation. Splitting by season keeps entire games together. We fit ridge logistic regression through `tidymodels` and `glmnet`, using standardized public features and an unpenalized intercept; player identities and CSA scoring probabilities are excluded from the predictors. We compare the geometric baseline with five requested ridge penalties, $10^{-4}$, $10^{-3}$, $10^{-2}$, $10^{-1}$, and $1$, along the fitted regularization path. Requests below the path's minimum use its terminal coefficients. Selection uses player-level average precision, grouping tied scores and preferring the baseline in a tie.
+Development, model selection, and final evaluation use separate seasons: 2023--24, 2024--25, and 2025--26, respectively. Keeping entire seasons separate also keeps games intact. The candidate models are the geometric baseline and ridge logistic regression fitted through `tidymodels` and `glmnet` to standardized public features, with an unpenalized intercept. Neither player identities nor CSA scoring probabilities enter the predictors. We compare five requested ridge penalties, $10^{-4}$, $10^{-3}$, $10^{-2}$, $10^{-1}$, and $1$, along the fitted regularization path; requests below its minimum use the terminal coefficients. Player-level average precision determines selection, grouping tied scores and favoring the baseline when methods tie.
 
-For the selected detector, the conservative threshold maximizes
+The selected detector supplies scores for two attribution rules. The conservative threshold maximizes
 
 $$
 F_{0.5}=\frac{1.25\,PR}{0.25P+R},
 $$
 
-where $P$ and $R$ denote precision and recall. The broader threshold maximizes $F_1=2PR/(P+R)$ subject to being no higher than the conservative threshold. The selected values are `r fmt(model$thresholds$conservative, 4)` and `r fmt(model$thresholds$broader, 4)`, respectively, and we freeze coefficients and thresholds before final-season evaluation. Each qualifying offensive teammate receives one credit per goal, excluding the scorer. Multiple teammates can qualify, including official assist recipients, and every conservative credit is included in the broader total. A goal-level prediction is positive when at least one teammate qualifies.
+where $P$ and $R$ are precision and recall. The broader threshold maximizes $F_1=2PR/(P+R)$ and is constrained to be no higher than the conservative threshold. Their selected values are `r fmt(model$thresholds$conservative, 4)` and `r fmt(model$thresholds$broader, 4)`, respectively. Coefficients and thresholds are frozen before final-season evaluation. Under either rule, each qualifying offensive teammate receives one credit per goal, with the scorer excluded. Several teammates can qualify on a goal, including official assist recipients, and all conservative credits also appear in the broader total. At the goal level, at least one qualifying teammate produces a positive prediction.
 
-We report precision, recall, average precision, and, for the classifier, calibration. Threshold-specific 95% intervals use a game-clustered sandwich calculation for each ratio. For example, with precision $\hat P=\sum_g T_g/\sum_g N_g$, the estimated variance is
+Evaluation reports precision, recall, and average precision, together with calibration for the classifier. Threshold-specific 95% intervals account for clustering within games through a sandwich calculation for each ratio. For precision $\hat P=\sum_g T_g/\sum_g N_g$, for example, the estimated variance is
 
 $$
 \widehat{\operatorname{Var}}(\hat P)=
@@ -184,13 +186,13 @@ $$
 \frac{\sum_g(T_g-\hat P N_g)^2}{(\sum_g N_g)^2}.
 $$
 
-Here $G$ is the number of games represented in the benchmark. We truncate Wald interval endpoints to $[0,1]$; the intervals describe benchmark sampling variation conditional on the selected detector and reference labels. Annotation uncertainty and model-selection uncertainty are not included.
+Here $G$ denotes the number of games in the benchmark. Wald interval endpoints are truncated to $[0,1]$. These intervals quantify benchmark sampling variation conditional on the chosen detector and reference labels, leaving annotation and model-selection uncertainty outside their scope.
 
-To examine possible failure mechanisms, we review tracking frames for 12 development-season player--goal cases across 11 goals, plus an additional unresolved trajectory. The cases include strong alignment, participant disagreements, multiple potential screeners, tips, a rapid follow-up scoring attempt, and a crossing near an attribution threshold. Comparing frames before, at, and after estimated release helps interpret the numerical features, although tracking-frame review cannot independently establish what the goalie sees and provides no additional accuracy estimate.
+Tracking-frame review helps connect the numerical features to possible failure mechanisms. We inspect 12 development-season player--goal cases across 11 goals, together with an additional unresolved trajectory. The cases cover strong alignment, participant disagreements, multiple potential screeners, tips, a rapid follow-up scoring attempt, and a crossing near an attribution threshold. Frames before, at, and after estimated release show how those situations enter the features. They cannot independently establish the goalie's view and supply no additional estimate of accuracy.
 
 ## Exposure and rankings
 
-For player $i$ under a common set of season, competition, team, and cutoff filters, we compute
+Player totals and exposure share the same season, competition, team, and cutoff filters. For player $i$, the corresponding rates are
 
 $$
 \begin{aligned}
@@ -199,15 +201,15 @@ $$
 \end{aligned}
 $$
 
-where $C_i$ is estimated credits under the selected definition, $G_i$ is official appearances, and $T_i$ is ice time in seconds. Traded players' records follow their team in each game, and players with no detected credits remain eligible. Count rankings impose no minimum. For rate rankings, completed seasons and the combined all-seasons view default to 25 games or 250 minutes; the ongoing season defaults to five games or 60 minutes. Playoff-only rankings start without a minimum. Readers can adjust these thresholds, and rates always require positive exposure.
+where $C_i$ denotes estimated credits under the selected definition, $G_i$ official appearances, and $T_i$ ice time in seconds. Each traded player's records follow the team represented in that game, and eligibility includes players with zero detected credits. Counts have no exposure minimum. Rate rankings default to 25 games or 250 minutes for completed seasons and the combined all-seasons view, and to five games or 60 minutes for the ongoing season. Playoff-only rankings begin without a minimum. Readers can adjust these thresholds; calculating a rate always requires positive exposure.
 
-The denominators include all official exposure, whereas credits come from evaluable goal replays. The rates therefore describe detected screen assists per game or unit of playing time, including exposure from games with unresolved tracking. Missing replays can depress these rates, and we do not impute additional credits for unevaluable goals.
+Official exposure includes games whose goal replays are missing or unevaluable, so the rates combine detected credits from evaluable goals with all official appearances or ice time. They measure screen assists detected per game or unit of playing time under that coverage. Missing replays can depress the rates because unevaluable goals receive no imputed credits.
 
 # Screening and scoring
 
-We examine scoring in a separate CSA population from 2024--25 and 2025--26, when release-type information is available. CSA describes its central coverage as shot sequences resulting in shots on goal [@csa], so the database should not be treated as a complete record of blocked and missed attempts. We compare reviewed, quality-complete offensive-screen and clear-sight shots with a goalie present, excluding screen-on-pass cases, posts, and deflection releases. Mixed screens, defensive screens, one-timer/screen categories, and rebound categories are outside this primary contrast. To restrict comparison to shared observed contexts, each included season--strength--precise-location--release stratum must contain both screened and clear-sight observations.
+The goal-replay rankings describe contributions conditional on scoring. To examine the association between screening and scoring itself, we use a separate CSA shot population from 2024--25 and 2025--26, when release-type information is available. CSA describes its central coverage as shot sequences resulting in shots on goal [@csa]; this coverage should not be treated as a complete record of blocked and missed attempts. The primary comparison includes reviewed, quality-complete offensive-screen and clear-sight shots with a goalie present. It excludes screen-on-pass cases, posts, and deflection releases, as well as the separate mixed-screen, defensive-screen, one-timer/screen, and rebound categories. Each included season--strength--precise-location--release stratum must contain both screened and clear-sight observations, restricting the comparison to shared observed contexts.
 
-The prespecified mixed-effects logistic model is
+We model scoring with the prespecified mixed-effects logistic model
 
 $$
 \operatorname{logit}\{\Pr(Y_j=1)\}
@@ -215,19 +217,20 @@ $$
 +b_{\mathrm{shooter}(j)}+b_{\mathrm{goalie}(j)}+b_{\mathrm{game}(j)}.
 $$
 
-Here $Y_j$ indicates a goal and $S_j$ indicates an offensive screen. The covariate vector $x_j$ contains season, regular-season/playoff status, strength, precise shot zone, release type, broad play context, first and second preceding-pass zones, and attacking and defending teams. Shooter, goalie, and game intercepts follow independent mean-zero normal distributions, and missing pass or context values are retained as an explicit unknown category. CSA scoring probabilities are excluded from the model.
+The response $Y_j$ indicates a goal, and $S_j$ indicates an offensive screen. Adjustment through $x_j$ includes season, regular-season/playoff status, strength, precise shot zone, release type, broad play context, first and second preceding-pass zones, and attacking and defending teams. Independent mean-zero normal distributions describe the shooter, goalie, and game intercepts. Missing pass and context values remain in the analysis as an explicit unknown category, and CSA scoring probabilities are excluded.
 
-We fit this model through `tidymodels` with the `multilevelmod`/`lme4` engine, using penalized iteratively reweighted least squares (`nAGQ = 0`). For standardization, we predict screened and clear-sight outcomes over the covariate distribution of screened shots in the shared strata, integrating the fitted random-intercept distributions with 41 deterministic normal-quantile nodes. The adjusted odds ratio is the conditional contrast $\exp(\beta)$, with a fixed-effect Wald interval. Delta-method intervals describe the standardized rates and their difference. All interval calculations hold variance components at their fitted estimates.
+Estimation uses `tidymodels` with the `multilevelmod`/`lme4` engine and penalized iteratively reweighted least squares (`nAGQ = 0`). To put the two groups on a common covariate distribution, we predict screened and clear-sight outcomes over the screened shots in the shared strata. Standardization integrates the fitted random-intercept distributions using 41 deterministic normal-quantile nodes. We report the conditional contrast $\exp(\beta)$ as the adjusted odds ratio with a fixed-effect Wald interval, and use delta-method intervals for the standardized rates and their difference. Each interval calculation holds the variance components at their fitted estimates.
 
 # Results
 
 ## Independent attribution performance
 
-The selected ridge detector has tuning-season average precision `r fmt(base::max(validation$comparison$average_precision), 3)`, compared with `r fmt(validation$comparison$average_precision[1], 3)` for the geometric baseline. On the reserved season, player-level average precision is `r fmt(final$average_precision, 3)` and goal-level average precision is `r fmt(final$event_average_precision, 3)`. This final benchmark contains `r count(final$conservative$event$n)` goals and `r count(final$conservative$player$n)` player--goal units, including `r count(final$conservative$player$positives)` annotated offensive teammate contributions. Conservative attribution recovers `r count(final$conservative$player$true_positive)` contributions and assigns `r count(final$conservative$player$false_positive)` credits to participants absent from the reference. The broader definition recovers `r count(final$broader$player$true_positive)` contributions, with `r count(final$broader$player$false_positive)` such disagreements.
+The ridge detector is selected with tuning-season average precision of `r fmt(base::max(validation$comparison$average_precision), 3)`, compared with `r fmt(validation$comparison$average_precision[1], 3)` for the geometric baseline. Its reserved-season average precision is `r fmt(final$average_precision, 3)` at the player level and `r fmt(final$event_average_precision, 3)` at the goal level. The final benchmark comprises `r count(final$conservative$event$n)` goals and `r count(final$conservative$player$n)` player--goal units, of which `r count(final$conservative$player$positives)` are annotated offensive teammate contributions. Conservative attribution recovers `r count(final$conservative$player$true_positive)` of these contributions and assigns `r count(final$conservative$player$false_positive)` credits to participants absent from the reference. The broader definition recovers `r count(final$broader$player$true_positive)` contributions, accompanied by `r count(final$broader$player$false_positive)` such disagreements.
 
 ```{r}
 #| label: tbl-performance
-#| tbl-cap: 'Reserved 2025--26 performance, with game-clustered 95% intervals.'
+#| tbl-cap: 'Reserved-season performance for 2025--26. Intervals are 95% and account for clustering within games.'
+#| tbl-pos: H
 
 # Format attribution and event performance.
 performance <- base::list()
@@ -250,11 +253,11 @@ knitr::kable(dplyr::bind_rows(performance), booktabs = TRUE, longtable = FALSE,
              col.names = base::c('Definition', 'Task', 'Precision (%)', 'Recall (%)'))
 ```
 
-Goal-level detection has higher precision and recall than participant attribution under both definitions (@tbl-performance), illustrating the distinction between detecting a screened goal and identifying its participants. Calibration adds a further qualification: the held-out Brier score is `r fmt(final$calibration$brier, 4)`, while intermediate-score bins have higher observed participant frequencies than their mean predictions. The large concentration of nonparticipants in the lowest bin contributes to the low overall score. We use classifier scores with empirically selected attribution thresholds; their calibration outside the selected reference population remains unknown.
+Both definitions identify screened goals with higher precision and recall than they identify individual participants (@tbl-performance). Detecting a screened play therefore leaves a further attribution task. The held-out Brier score is `r fmt(final$calibration$brier, 4)`, but calibration varies across the score range: intermediate-score bins contain higher observed participant frequencies than their mean predictions, and the large concentration of nonparticipants in the lowest bin contributes to the low overall score. The classifier supplies scores for empirically selected attribution thresholds; calibration beyond the selected reference population remains unknown.
 
 ```{r}
 #| label: fig-calibration
-#| fig-cap: 'Calibration on the reserved reference set. Point size reflects bin count. Intermediate-score bins show underprediction, and calibration outside this selected benchmark is unknown.'
+#| fig-cap: 'Reserved-set calibration, with point size reflecting bin count. Intermediate-score bins underpredict participant frequency; calibration beyond this selected benchmark remains unknown.'
 #| out-width: '85%'
 
 # Include held-out calibration figure.
@@ -263,18 +266,18 @@ knitr::include_graphics('../docs/figures/calibration.png')
 
 ## Player rankings and sensitivity
 
-Across the included seasons and competitions, the detector assigns `r count(base::sum(rankings$rows$conservative))` conservative and `r count(base::sum(rankings$rows$broader))` broader credits. In the 2025--26 regular season, `r leaders$name[1]` leads with `r leaders$conservative[1]` conservative credits; `r leaders$name[2]` and `r leaders$name[3]` each receive `r leaders$conservative[2]`. @tbl-leaders reports both totals and rates for the leading players. The website opens on 2025--26, the most recent completed season, and connects every credited goal to its replay.
+Over all included seasons and competitions, the detector assigns `r count(base::sum(rankings$rows$conservative))` conservative credits and `r count(base::sum(rankings$rows$broader))` broader credits. For the 2025--26 regular season, `r leaders$name[1]` leads with `r leaders$conservative[1]` conservative credits, followed by `r leaders$name[2]` and `r leaders$name[3]`, each with `r leaders$conservative[2]`. Their totals and exposure-based rates appear with the other leading players in @tbl-leaders. The website opens on this most recent completed season, 2025--26, and links each credited goal to its replay.
 
 ```{r}
 #| label: tbl-leaders
-#| tbl-cap: 'Leading conservative screen-assist totals, 2025--26 regular season. Rates use conservative credits.'
+#| tbl-cap: 'Leading conservative screen-assist totals in the 2025--26 regular season, with rates calculated from conservative credits.'
 #| tbl-pos: H
 
 # Display leading players with common exposure denominators.
 leader_table <- leaders |>
   dplyr::slice_head(n = 10L) |>
   dplyr::transmute(Player = .data$name, Conservative = .data$conservative,
-                   Broader = .data$broader, GP = .data$games,
+                   Broader = .data$broader, games = .data$games,
                    per_game = fmt(.data$conservative / .data$games),
                    per60 = fmt(3600 * .data$conservative / .data$seconds))
 rate_header <- if (knitr::is_latex_output()) {
@@ -283,18 +286,21 @@ rate_header <- if (knitr::is_latex_output()) {
 } else {
   base::c('Screen assists<br>per game', 'Screen assists<br>per 60 min')
 }
+games_header <- if (knitr::is_latex_output()) {
+  '\\shortstack{Games\\\\played}'
+} else 'Games<br>played'
 knitr::kable(leader_table, booktabs = TRUE, longtable = FALSE, align = 'lrrrrr',
-             col.names = base::c('Player', 'Conservative', 'Broader', 'GP', rate_header),
+             col.names = base::c('Player', 'Conservative', 'Broader', games_header, rate_header),
              escape = FALSE, format = if (knitr::is_latex_output()) 'latex' else 'html')
 ```
 
-A zero indicates that no contribution is detected under the selected definition and filters, and may occur for a player who screens on other shots. Inspection of the development examples also shows how quickly alignment changes: a player can cross the segment within a few samples, while a named participant can remain outside the sensor-defined segment with body position unobserved. In the unresolved example, the tracked puck crosses the goal plane 6.38 ft from its center, beyond the goalmouth tolerance, so we retain an unevaluable status.
+A player's zero total means that no contribution is detected under the selected definition and filters, even if that player screens on other shots. The development examples show how such distinctions can arise within a play. Alignment can change over a few samples as a player crosses the segment, and a named participant can remain outside the sensor-defined sightline while body position is unobserved. One trajectory remains unresolved because the tracked puck crosses the goal plane 6.38 ft from goal center, beyond the goalmouth tolerance; it retains an unevaluable status.
 
-Both effective tolerance and estimated release timing change the number of qualifying contributions (@tbl-sensitivity). These differences demonstrate that the leaderboard depends on measurement assumptions as well as the selected attribution threshold. Conservative and broader totals describe two operating definitions, while the sensitivity scenarios examine additional positional and timing uncertainty.
+Changes in effective tolerance and estimated release timing alter the number of qualifying contributions (@tbl-sensitivity). Player totals thus depend on the measurement assumptions as well as the attribution threshold. The conservative and broader columns apply two operating definitions to the primary features; the sensitivity scenarios examine how additional positional and timing uncertainty affects credits with the detector held fixed.
 
 ```{r}
 #| label: tbl-sensitivity
-#| tbl-cap: '2025--26 regular season and playoffs combined: fixed-detector sensitivity to geometry and release timing.'
+#| tbl-cap: 'Sensitivity to geometry and release timing with the detector held fixed, combining the 2025--26 regular season and playoffs.'
 #| tbl-pos: H
 
 # Present bounded sensitivity scenarios.
@@ -313,36 +319,36 @@ knitr::kable(sensitivity, col.names = base::c('Scenario', 'Conservative', 'Broad
 
 ## Adjusted scoring association
 
-The common-support population contains `r count(outcome$screened_shots)` screened shots and `r count(outcome$clear_shots)` clear-sight shots across `r count(outcome$games)` games, retaining `r pct(outcome$screened_retention)` of otherwise eligible screened shots. Observed screened scoring rates are `r pct(outcome$observed$rate[outcome$observed$screen == 1][1])` in 2024--25 and `r pct(outcome$observed$rate[outcome$observed$screen == 1][2])` in 2025--26; the corresponding clear-sight rates are `r pct(outcome$observed$rate[outcome$observed$screen == 0][1])` and `r pct(outcome$observed$rate[outcome$observed$screen == 0][2])`.
+The shared-stratum population includes `r count(outcome$screened_shots)` screened shots and `r count(outcome$clear_shots)` clear-sight shots from `r count(outcome$games)` games, retaining `r pct(outcome$screened_retention)` of otherwise eligible screened shots. Before adjustment, screened shots score at rates of `r pct(outcome$observed$rate[outcome$observed$screen == 1][1])` in 2024--25 and `r pct(outcome$observed$rate[outcome$observed$screen == 1][2])` in 2025--26. Clear-sight rates in the same seasons are `r pct(outcome$observed$rate[outcome$observed$screen == 0][1])` and `r pct(outcome$observed$rate[outcome$observed$screen == 0][2])`, respectively.
 
-After adjustment and standardization to screened-shot covariates, the screened scoring rate is `r interval(outcome$adjusted$screened_rate, 100)` percent and the clear-sight rate is `r interval(outcome$adjusted$clear_rate, 100)` percent, with 95% intervals in parentheses. The standardized difference is `r interval(outcome$adjusted$risk_difference, 100)` percentage points, and the conditional adjusted odds ratio is `r interval(outcome$adjusted$odds_ratio)`. These contrasts describe screening's association with scoring within the included shot population.
+Adjustment and standardization to the screened-shot covariates give a screened scoring rate of `r interval(outcome$adjusted$screened_rate, 100)` percent and a clear-sight rate of `r interval(outcome$adjusted$clear_rate, 100)` percent, with 95% intervals in parentheses. Their standardized difference is `r interval(outcome$adjusted$risk_difference, 100)` percentage points, and the conditional adjusted odds ratio is `r interval(outcome$adjusted$odds_ratio)`. These estimates describe the association between screening and scoring in the included shot population.
 
 ```{r}
 #| label: fig-scoring
-#| fig-cap: 'Standardized scoring rates with model-based 95% intervals. Both predictions use screened-shot covariates within common support.'
+#| fig-cap: 'Standardized scoring rates and model-based 95% intervals. Both predictions use the covariate distribution of screened shots within common support.'
 #| out-width: '95%'
 
 # Include adjusted scoring comparison.
 knitr::include_graphics('../docs/figures/scoring.png')
 ```
 
-The optimizer converges with a goalie random-intercept variance of zero. Shooter and game variances are approximately `r fmt(outcome$random_effects$vcov[outcome$random_effects$grp == 'shooter_id'], 4)` and `r fmt(outcome$random_effects$vcov[outcome$random_effects$grp == 'game_id'], 4)` on the log-odds scale. We retain the boundary fit, with interval calculations conditional on these variance estimates. Unmeasured shot characteristics, detailed pass timing, player selection, and classification practices remain possible contributors to the association.
+The optimizer converges at a boundary fit, with the goalie random-intercept variance equal to zero. The shooter and game variances are approximately `r fmt(outcome$random_effects$vcov[outcome$random_effects$grp == 'shooter_id'], 4)` and `r fmt(outcome$random_effects$vcov[outcome$random_effects$grp == 'game_id'], 4)` on the log-odds scale. We retain that fit and calculate intervals conditional on the estimated variances. Unmeasured shot characteristics, detailed pass timing, player selection, and classification practices can also contribute to the observed association.
 
 # Discussion
 
-Public replay tracking identifies many independently annotated screen participants under a relatively simple detector. The conservative threshold prioritizes precision, while the broader threshold recovers more reference contributions at the cost of additional disagreements. Presenting both totals alongside the credited plays makes that tradeoff available for inspection and gives the rankings a defined empirical basis.
+The detector recovers many independently annotated screening participants from public replay tracking, giving the player rankings an empirical basis for attribution. The two thresholds expose a useful trade-off: conservative credits have higher precision, while broader credits recover more reference contributions and include more disagreements. Reading these totals alongside the credited replays connects a player's position in the rankings to the plays that produce it.
 
-The rankings nevertheless condition on a goal being scored. Screens on shots that are saved, miss the net, or are blocked cannot receive credit in this dataset, and team shooting volume, offensive role, special-teams deployment, and teammate finishing affect opportunities. Official appearances and ice time provide consistent exposure denominators, but they do not remove these differences. The counts and rates consequently describe detected contributions on goals rather than a player's complete screening activity.
+That position depends on opportunities as well as screening activity. Every credit conditions on a goal, leaving screens on saved, missed, and blocked shots outside the measure. Team shooting volume, offensive role, special-teams deployment, and teammate finishing all affect the opportunities to receive credit. Official appearances and ice time put the rates on consistent exposure denominators, but cannot remove those differences. The resulting counts and rates describe detected contributions on goals, with a player's wider screening activity left unmeasured.
 
-Measurement uncertainty is also substantial. The goalie-to-puck segment approximates a three-dimensional visual process using shoulder-mounted positions, and brief crossings can occur between samples. Deflections, rebounds, and goalie contact complicate release inference, while unevaluable trajectories may be distributed unevenly across teams or types of play. Sensitivity to effective tolerance and release timing shows that apparent differences between players can depend on assumptions about unobserved positions and events.
+The same care is needed when interpreting differences between players. Shoulder-mounted positions reduce a three-dimensional visual process to a goalie-to-puck segment, and brief crossings may occur between samples. Deflections, rebounds, and goalie contact complicate release inference; unevaluable trajectories may also be distributed unevenly across teams or types of play. The sensitivity results show that totals respond to effective tolerance and release timing, so an apparent difference between players can depend partly on assumptions about positions and events the tracking does not observe.
 
-Reference construction introduces further limits. Explicit classifications and participant identities support evaluation, but the eligibility rules leave ambiguous plays outside the benchmark and change screening prevalence. Named participants can be misclassified, and unlisted teammates may still obstruct vision. The reported performance therefore measures agreement with a defined reference population. Validation on a broader set of independently reviewed plays, ideally combining tracking with video and clearer annotation rules, would help establish how the method performs beyond that population.
+Reference agreement also has a defined scope. Explicit classifications and participant identities make evaluation possible, while the eligibility rules exclude ambiguous plays and alter screening prevalence. Errors in named participants and obstruction by unlisted teammates remain possible. Reported performance consequently describes agreement within the selected reference population. A broader collection of independently reviewed plays, combining tracking with video and clearer annotation rules, would help establish how well the method extends beyond that population.
 
-The CSA scoring analysis provides complementary evidence that offensive screens are associated with scoring after adjustment for observed context. Its population and estimand differ from those of the goal-replay detector, however, so neither the adjusted odds ratio nor the standardized rate difference can be multiplied by a player's screen-assist total to estimate causal goals added. That question requires broader tracking, an account of shot selection, and a defensible counterfactual design. The present rankings provide a reproducible description of attributed screens on goals, with replay inspection and measured reference agreement available to support their use.
+The separate CSA shot analysis adds evidence that offensive screens are associated with scoring after adjustment for observed context. Its population and estimand differ from those of the goal-replay detector, so the adjusted odds ratio and standardized rate difference cannot be multiplied by a player's screen-assist total to obtain causal goals added. Estimating that quantity would require broader tracking, an account of shot selection, and a defensible counterfactual design. The present rankings support comparisons of attributed screens on goals, with credited replays and measured reference agreement available to assess those comparisons.
 
 # Data and code availability
 
-The [website](https://RentoSaijo.github.io/NHL_ScreenAssists/) provides rankings, replay exploration, methodology, and this paper. The [repository](https://github.com/RentoSaijo/NHL_ScreenAssists) contains R code, editable Quarto source, explicit detector coefficients, NHL-derived goal--player credits, player-game exposure, short replay segments, and aggregate findings. Provenance records the `nhlscraper` revision and public database snapshot. These artifacts reproduce the published ranking arithmetic, figures, and report. CSA records, event-level labels, and fitted private model objects are not distributed; re-estimating the CSA-dependent models requires authorized access. The publication is a fixed snapshot through October 19, 2026.
+The [website](https://RentoSaijo.github.io/NHL_ScreenAssists/) brings together player rankings, replay exploration, methodology, and the complete paper. The [repository](https://github.com/RentoSaijo/NHL_ScreenAssists) supplies the R code and editable Quarto source, explicit detector coefficients, NHL-derived goal--player credits, player-game exposure, short replay segments, and aggregate findings. These public artifacts reproduce the published ranking arithmetic, figures, and report; provenance records the `nhlscraper` revision and public database snapshot. Re-estimating the CSA-dependent models requires authorized access because CSA records, event-level labels, and fitted private model objects are not distributed. All published results refer to the fixed snapshot through October 19, 2026.
 
 {{< pagebreak >}}
 

@@ -35,7 +35,7 @@ format:
     other-links:
       - text: Rankings and replay explorer
         href: https://RentoSaijo.github.io/NHL_ScreenAssists/
-      - text: Source and data
+      - text: GitHub repository
         href: https://github.com/RentoSaijo/NHL_ScreenAssists
   jasa-pdf:
     keep-tex: false
@@ -51,6 +51,8 @@ format:
         \usepackage{float}
         \usepackage{microtype}
         \usepackage{longtable}
+        \clubpenalty=10000
+        \widowpenalty=10000
         \AtBeginDocument{\renewcommand{\harvardurl}[1]{\url{#1}}}
 
 bibliography: references.bib

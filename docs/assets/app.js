@@ -64,7 +64,7 @@ function renderRankings() {
   $('#rows').innerHTML = visible.length ? visible.map(row => `<tr>
     <td>${row.rank}</td>${cell('name', `<button class="player-link" data-player="${row.player}">${escapeHTML(row.name)}</button>`)}
     ${cell('team', escapeHTML(row.team), 'team')}${cell('conservative', row.conservative)}${cell('broader', row.broader)}
-    ${cell('games', row.games)}${cell('seconds', decimal(row.seconds / 60))}${cell('per_game', decimal(row.per_game))}${cell('per60', decimal(row.per60))}</tr>`).join('') : '<tr><td colspan="9" class="loading">No players match these filters.</td></tr>';
+    ${cell('games', row.games)}${cell('seconds', decimal(row.seconds / 60))}${cell('per_game', decimal(row.per_game))}${cell('per60', decimal(row.per60))}</tr>`).join('') : '<tr><td colspan="9" class="loading">No players meet the selected filters and any rate minimum.</td></tr>';
   $('#page-number').textContent = `${rows.length ? state.page + 1 : 0} / ${Math.ceil(rows.length / 50)}`;
   $('#previous').disabled = state.page === 0;
   $('#next').disabled = (state.page + 1) * 50 >= rows.length;
@@ -163,12 +163,12 @@ function createExplorer() {
   dialog.innerHTML = `<div class="dialog-head"><div><h2 id="explorer-title"></h2><p id="explorer-summary"></p></div><button class="close" aria-label="Close explorer">×</button></div>
     <div class="explorer"><div class="goal-list" id="goal-list" aria-label="Credited goals"></div><div class="replay" id="replay">
       <h3 id="replay-title">Select a goal</h3><p class="replay-subtitle" id="replay-subtitle"></p>
-      <div class="canvas-frame"><canvas id="rink" width="1000" height="650" aria-label="Animated rink replay with player identities, puck, and estimated sightline">Animated hockey tracking replay. Use the original NHL replay link for an alternative view.</canvas></div>
+      <div class="canvas-frame"><canvas id="rink" width="1000" height="650" aria-label="Animated rink replay with player identities, puck, and estimated sightline">This replay shows recorded puck and player positions. Follow the NHL tracking replay link to view the play in the original explorer.</canvas></div>
       <div class="controls"><button id="play" disabled>Play</button><input id="seek" type="range" min="0" max="1" step="1" value="0" aria-label="Replay frame" disabled><select id="speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></div>
       <div class="replay-options"><span class="replay-time" id="replay-time"></span><label><input id="names" type="checkbox" checked> Player names</label></div>
       <div class="legend"><span><i class="selected"></i>Selected player</span><span><i></i>Attacker</span><span><i class="defender"></i>Defender</span><span><i class="puck"></i>Puck</span></div>
       <p class="replay-caption" id="replay-credits"></p>
-      <p class="replay-caption">0.00 s marks estimated release. Tracking is sampled at 0.10 s. Dots show shoulder sensors; the shaded band illustrates a 1.50 ft effective tolerance around the goalie-to-puck segment. It does not reveal body pose or the goalie’s actual field of view.</p>
+      <p class="replay-caption">Replay time is measured from estimated release (0.00 s), and player dots show shoulder-sensor positions sampled every 0.10 s. The shaded band appears automatically while the goalie-to-puck segment is valid and active, illustrating a 1.50 ft effective tolerance. Body pose and the goalie’s actual field of view remain unobserved.</p>
       <div class="replay-links"><a id="nhl-replay" target="_blank" rel="noopener">Open NHL tracking replay ↗</a><a id="nhl-video" target="_blank" rel="noopener" hidden>Watch goal video ↗</a></div>
     </div></div>`;
   document.body.append(dialog);
@@ -215,15 +215,15 @@ async function openPlayer(id, explicitKey = null) {
     if (explicitKey && !goals.some(goal => goal.key === explicitKey)) goals.push(index.events[explicitKey]);
     goals.sort((a, b) => b.game - a.game || b.event - a.event);
     const conservative = goals.filter(goal => goal.credits.some(c => c.player === id && c.conservative)).length;
-    $('#explorer-summary').textContent = `${conservative} conservative · ${goals.length} broader credits${explicitKey ? ' across snapshot' : ' under selected filters'}`;
+    $('#explorer-summary').textContent = `${conservative} conservative and ${goals.length} broader screen assists${explicitKey ? ' across the snapshot' : ' under the selected filters'}.`;
     $('#goal-list').innerHTML = goals.length ? goals.map(goal => {
       const credit = goal.credits.find(c => c.player === id);
       return `<button class="goal-item" data-key="${goal.key}" aria-pressed="false"><strong>${teamCode(goal.away)} at ${teamCode(goal.home)} · ${goalDate(goal.date)}</strong><span>${escapeHTML(playerName(goal.scorer))} · ${escapeHTML(goal.shot || 'Shot')} · P${goal.period}</span><span class="badge${credit?.conservative ? '' : ' broad'}">${credit?.conservative ? 'Conservative + broader' : 'Broader only'}</span></button>`;
-    }).join('') : '<p class="loading">No detected screen assists under these filters. This does not establish that the player never screens.</p>';
+    }).join('') : '<p class="loading">No screen assists are detected for this player under the selected filters. These estimates cover goals with evaluable tracking, so a zero does not establish an absence of screening activity.</p>';
     $$('.goal-item').forEach(button => button.addEventListener('click', () => selectGoal(button.dataset.key)));
     if (goals.length) await selectGoal(explicitKey || goals[0].key);
   } catch (error) {
-    $('#goal-list').innerHTML = `<p class="error">${escapeHTML(error.message)} Please close and try again.</p>`;
+    $('#goal-list').innerHTML = `<p class="error">${escapeHTML(error.message)} Close the explorer and reopen the player’s goal list to try again.</p>`;
   }
 }
 
@@ -235,7 +235,7 @@ async function selectGoal(key) {
   $('#replay').hidden = false;
   $('#replay-title').textContent = `${playerName(goal.scorer)} scores`;
   $('#replay-subtitle').textContent = `${teamCode(goal.away)} at ${teamCode(goal.home)} · ${goalDate(goal.date)} · ${seasonName(goal.season)} ${goal.type === 3 ? 'playoffs' : 'regular season'}`;
-  $('#replay-credits').textContent = `Credited teammates: ${goal.credits.map(credit => `${playerName(credit.player)} (${credit.conservative ? 'conservative + broader' : 'broader only'})`).join('; ')}.`;
+  $('#replay-credits').textContent = `Screen assists on this goal: ${goal.credits.map(credit => `${playerName(credit.player)} (${credit.conservative ? 'conservative + broader' : 'broader only'})`).join('; ')}.`;
   $('#play').disabled = true;
   $('#play').textContent = 'Loading';
   $$('.goal-item').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.key === key)));
@@ -244,7 +244,7 @@ async function selectGoal(key) {
     if (!state.shards.has(goal.file)) state.shards.set(goal.file, await fetchJSON(`data/${goal.file}`));
     if (state.selectedKey !== key) return;
     state.clip = state.shards.get(goal.file)[key];
-    if (!state.clip) throw new Error('Replay segment is unavailable.');
+    if (!state.clip) throw new Error('The replay segment for this goal could not be loaded.');
     state.frame = 0;
     $('#seek').max = state.clip.time.length - 1;
     $('#seek').disabled = false;
@@ -400,7 +400,7 @@ async function initializeResearch() {
     else await initializeResearch();
   } catch (error) {
     const target = $('#load-status');
-    if (target) { target.textContent = `${error.message} Reload to try again.`; target.classList.add('error'); }
-    if ($('#rows')) $('#rows').innerHTML = '<tr><td colspan="9" class="error">Rankings could not be loaded.</td></tr>';
+    if (target) { target.textContent = `${error.message} Reload the page to try again.`; target.classList.add('error'); }
+    if ($('#rows')) $('#rows').innerHTML = '<tr><td colspan="9" class="error">Rankings could not be loaded. Reload the page to try again.</td></tr>';
   }
 })();
